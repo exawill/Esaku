@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Esaku — Profile</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/theme.js"></script>
+  </head>
+  <body class="font-sans">
+    <div id="app-root"></div>
+
+    <template id="page-template">
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="profile.title">Profile</h2>
+          <form id="profile-form" class="mt-6 space-y-4">
+            <div>
+              <label class="label" data-i18n="auth.email">Email</label>
+              <input type="email" id="p-email" class="input" disabled />
+            </div>
+            <div>
+              <label class="label">Role</label>
+              <input type="text" id="p-role" class="input" disabled />
+            </div>
+            <div>
+              <label class="label" data-i18n="common.balance">Balance</label>
+              <input type="text" id="p-balance" class="input" disabled />
+            </div>
+            <div>
+              <label class="label" data-i18n="auth.name">Full name</label>
+              <input type="text" name="name" id="p-name" class="input" />
+            </div>
+            <button type="submit" class="btn-primary" data-i18n="profile.update">Update profile</button>
+          </form>
+        </div>
+
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="profile.change_password">Change password</h2>
+          <form id="password-form" class="mt-6 space-y-4">
+            <div>
+              <label class="label" data-i18n="profile.current_password">Current password</label>
+              <input type="password" name="current_password" class="input" autocomplete="current-password" />
+            </div>
+            <div>
+              <label class="label" data-i18n="profile.new_password">New password</label>
+              <input type="password" name="new_password" class="input" autocomplete="new-password" minlength="8" required />
+            </div>
+            <button type="submit" class="btn-primary" data-i18n="common.save">Save</button>
+          </form>
+        </div>
+      </div>
+    </template>
+
+    <div id="page-content" class="hidden"></div>
+
+    <script src="/js/i18n.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/shell.js"></script>
+    <script>
+      (async function () {
+        const tpl = document.getElementById("page-template").content.cloneNode(true);
+        document.getElementById("page-content").appendChild(tpl);
+
+        const user = await shell.mount({ pageTitleKey: "profile.title" });
+        if (!user) return;
+
+        const { profile } = await app.api("/api/profile");
+        document.getElementById("p-email").value = profile.email;
+        document.getElementById("p-role").value = profile.role;
+        document.getElementById("p-balance").value = app.formatIDR(profile.balance);
+        document.getElementById("p-name").value = profile.name || "";
+
+        document.getElementById("profile-form").addEventListener("submit", async (ev) => {
+          ev.preventDefault();
+          const name = document.getElementById("p-name").value.trim();
+          try {
+            await app.api("/api/profile", { method: "PATCH", body: { name } });
+            app.showToast("Saved", "success");
+          } catch (err) {
+            app.showToast(err.message, "error");
+          }
+        });
+
+        document.getElementById("password-form").addEventListener("submit", async (ev) => {
+          ev.preventDefault();
+          const fd = new FormData(ev.currentTarget);
+          try {
+            await app.api("/api/profile/password", {
+              method: "POST",
+              body: {
+                current_password: fd.get("current_password") || "",
+                new_password: fd.get("new_password")
+              }
+            });
+            app.showToast("Password updated", "success");
+            ev.currentTarget.reset();
+          } catch (err) {
+            app.showToast(err.message, "error");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

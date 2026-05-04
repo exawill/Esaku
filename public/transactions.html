@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Esaku — Transactions</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/theme.js"></script>
+  </head>
+  <body class="font-sans">
+    <div id="app-root"></div>
+
+    <template id="page-template">
+      <div class="card p-6 lg:p-8">
+        <div class="flex items-center justify-between flex-wrap gap-3">
+          <h2 class="font-display text-xl font-bold" data-i18n="tx.title">Transactions</h2>
+        </div>
+        <div class="mt-5 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">
+              <tr>
+                <th class="py-2" data-i18n="common.date">Date</th>
+                <th class="py-2" data-i18n="common.type">Type</th>
+                <th class="py-2" data-i18n="common.description">Description</th>
+                <th class="py-2 text-right" data-i18n="common.amount">Amount</th>
+                <th class="py-2 text-right" data-i18n="common.balance">Balance</th>
+              </tr>
+            </thead>
+            <tbody id="tx-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+
+    <div id="page-content" class="hidden"></div>
+
+    <script src="/js/i18n.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/shell.js"></script>
+    <script>
+      (async function () {
+        const tpl = document.getElementById("page-template").content.cloneNode(true);
+        document.getElementById("page-content").appendChild(tpl);
+
+        const user = await shell.mount({ pageTitleKey: "side.transactions" });
+        if (!user) return;
+
+        const data = await app.api("/api/transactions?limit=200");
+        const tbody = document.getElementById("tx-rows");
+        if (!data.transactions.length) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-ink-600 dark:text-cream-200">No transactions yet.</td></tr>`;
+          return;
+        }
+        for (const t of data.transactions) {
+          const positive = Number(t.amount) >= 0;
+          const tr = document.createElement("tr");
+          tr.className = "border-t border-ink-900/5 dark:border-cream-100/5";
+          tr.innerHTML = `
+            <td class="py-3">${app.formatDate(t.created_at)}</td>
+            <td class="py-3"><span class="pill">${t.type}</span></td>
+            <td class="py-3">${t.description || "-"}</td>
+            <td class="py-3 text-right font-medium ${positive ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}">${positive ? "+" : ""}${app.formatIDR(t.amount)}</td>
+            <td class="py-3 text-right">${app.formatIDR(t.balance_after)}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      })();
+    </script>
+  </body>
+</html>

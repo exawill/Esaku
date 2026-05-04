@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Esaku — Admin CMS</title>
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <script src="/js/theme.js"></script>
+  </head>
+  <body class="font-sans">
+    <div id="app-root"></div>
+
+    <template id="page-template">
+      <div class="space-y-6">
+        <!-- QRIS Provider config -->
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="admin.qris_provider">QRIS Provider API</h2>
+          <p class="text-sm text-ink-600 dark:text-cream-200 mt-1">Pick the upstream API used to generate QRIS codes for end users.</p>
+          <form id="provider-form" class="mt-6 grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="label">Provider key</label>
+              <select name="provider" class="input">
+                <option value="internal">internal (built-in)</option>
+                <option value="midtrans">midtrans</option>
+                <option value="xendit">xendit</option>
+                <option value="ipaymu">ipaymu</option>
+                <option value="custom">custom</option>
+              </select>
+            </div>
+            <div>
+              <label class="label">Merchant ID</label>
+              <input type="text" name="merchant_id" class="input" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="label">API base URL</label>
+              <input type="url" name="api_base_url" class="input" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="label">API key / secret</label>
+              <input type="text" name="api_key" class="input" />
+            </div>
+            <div>
+              <label class="label">QRIS expiry (minutes)</label>
+              <input type="number" name="expiry_minutes" min="1" max="1440" class="input" value="15" />
+            </div>
+            <div class="sm:col-span-2 flex justify-end">
+              <button class="btn-primary" data-i18n="common.save">Save</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Fees -->
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="admin.fees">Fees</h2>
+          <form id="fees-form" class="mt-6 grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="label">QRIS flat fee (%)</label>
+              <input type="number" name="qris_flat_percent" step="0.01" class="input" />
+            </div>
+            <div>
+              <label class="label">Withdrawal — minimum (IDR)</label>
+              <input type="number" name="withdrawal_min_idr" step="500" class="input" />
+            </div>
+            <div>
+              <label class="label">Withdrawal — bank fee (IDR)</label>
+              <input type="number" name="withdrawal_bank_fee_idr" step="500" class="input" />
+            </div>
+            <div>
+              <label class="label">Withdrawal — e-wallet fee (IDR)</label>
+              <input type="number" name="withdrawal_ewallet_fee_idr" step="500" class="input" />
+            </div>
+            <div class="sm:col-span-2 flex justify-end">
+              <button class="btn-primary" data-i18n="common.save">Save</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Branding -->
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="admin.branding">Branding</h2>
+          <form id="branding-form" class="mt-6 grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="label">Site name</label>
+              <input type="text" name="site_name" class="input" />
+            </div>
+            <div>
+              <label class="label">Logo URL</label>
+              <input type="url" name="logo_url" class="input" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="label">Banner URL</label>
+              <input type="url" name="banner_url" class="input" />
+            </div>
+            <div class="sm:col-span-2 flex justify-end">
+              <button class="btn-primary" data-i18n="common.save">Save</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Withdrawals queue -->
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="admin.withdrawals">Withdrawals queue</h2>
+          <div class="mt-5 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">
+                <tr>
+                  <th class="py-2">Date</th>
+                  <th class="py-2">User</th>
+                  <th class="py-2">Method</th>
+                  <th class="py-2">Destination</th>
+                  <th class="py-2">Amount</th>
+                  <th class="py-2">Fee</th>
+                  <th class="py-2">Status</th>
+                  <th class="py-2"></th>
+                </tr>
+              </thead>
+              <tbody id="wd-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Users -->
+        <div class="card p-6 lg:p-8">
+          <h2 class="font-display text-xl font-bold" data-i18n="admin.users">Users</h2>
+          <div class="mt-5 overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">
+                <tr>
+                  <th class="py-2">Email</th>
+                  <th class="py-2">Name</th>
+                  <th class="py-2">Role</th>
+                  <th class="py-2 text-right">Balance</th>
+                  <th class="py-2">Joined</th>
+                </tr>
+              </thead>
+              <tbody id="user-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <div id="page-content" class="hidden"></div>
+
+    <script src="/js/i18n.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/shell.js"></script>
+    <script>
+      (async function () {
+        const tpl = document.getElementById("page-template").content.cloneNode(true);
+        document.getElementById("page-content").appendChild(tpl);
+
+        const user = await shell.mount({ requireAdmin: true, pageTitleKey: "side.cms" });
+        if (!user) return;
+
+        function fillForm(form, data) {
+          for (const [k, v] of Object.entries(data || {})) {
+            const el = form.querySelector(`[name="${k}"]`);
+            if (el) el.value = v ?? "";
+          }
+        }
+        function readForm(form) {
+          const out = {};
+          for (const el of form.querySelectorAll("[name]")) {
+            const v = el.value;
+            out[el.name] = el.type === "number" ? Number(v) : v;
+          }
+          return out;
+        }
+
+        async function loadAll() {
+          const { settings } = await app.api("/api/admin/settings");
+          fillForm(document.getElementById("provider-form"), settings.qris_provider);
+          fillForm(document.getElementById("fees-form"), settings.fees);
+          fillForm(document.getElementById("branding-form"), settings.branding);
+
+          const { users } = await app.api("/api/admin/users");
+          const ub = document.getElementById("user-rows");
+          ub.innerHTML = users
+            .map(
+              (u) => `
+              <tr class="border-t border-ink-900/5 dark:border-cream-100/5">
+                <td class="py-3">${u.email}</td>
+                <td class="py-3">${u.name || "-"}</td>
+                <td class="py-3"><span class="pill">${u.role}</span></td>
+                <td class="py-3 text-right">${app.formatIDR(u.balance)}</td>
+                <td class="py-3">${app.formatDate(u.created_at)}</td>
+              </tr>`
+            )
+            .join("");
+
+          const { withdrawals } = await app.api("/api/admin/withdrawals");
+          const wb = document.getElementById("wd-rows");
+          wb.innerHTML = withdrawals
+            .map(
+              (w) => `
+              <tr class="border-t border-ink-900/5 dark:border-cream-100/5">
+                <td class="py-3">${app.formatDate(w.created_at)}</td>
+                <td class="py-3">${w.email}</td>
+                <td class="py-3">${w.method}</td>
+                <td class="py-3 font-mono text-xs">${w.destination}</td>
+                <td class="py-3">${app.formatIDR(w.amount)}</td>
+                <td class="py-3">${app.formatIDR(w.fee)}</td>
+                <td class="py-3"><span class="pill">${w.status}</span></td>
+                <td class="py-3 text-right">
+                  ${
+                    w.status === "pending"
+                      ? `<button data-act="complete" data-id="${w.id}" class="btn-secondary !px-3 !py-1 text-xs">Complete</button>
+                         <button data-act="fail" data-id="${w.id}" class="btn-secondary !px-3 !py-1 text-xs">Fail</button>`
+                      : ""
+                  }
+                </td>
+              </tr>`
+            )
+            .join("");
+
+          wb.addEventListener("click", async (ev) => {
+            const btn = ev.target.closest("button[data-act]");
+            if (!btn) return;
+            const url =
+              btn.dataset.act === "complete"
+                ? `/api/admin/withdrawals/${btn.dataset.id}/complete`
+                : `/api/admin/withdrawals/${btn.dataset.id}/fail`;
+            try {
+              await app.api(url, { method: "POST" });
+              app.showToast("Updated", "success");
+              loadAll();
+            } catch (err) {
+              app.showToast(err.message, "error");
+            }
+          }, { once: true });
+        }
+
+        async function saveSetting(key, formId) {
+          const form = document.getElementById(formId);
+          form.addEventListener("submit", async (ev) => {
+            ev.preventDefault();
+            try {
+              await app.api(`/api/admin/settings/${key}`, {
+                method: "PUT",
+                body: readForm(form)
+              });
+              app.showToast("Saved", "success");
+            } catch (err) {
+              app.showToast(err.message, "error");
+            }
+          });
+        }
+        saveSetting("qris_provider", "provider-form");
+        saveSetting("fees", "fees-form");
+        saveSetting("branding", "branding-form");
+
+        loadAll();
+      })();
+    </script>
+  </body>
+</html>

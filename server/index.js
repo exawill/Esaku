@@ -61,6 +61,7 @@ app.use("/api/dashboard", dashboardRoutes);
 // Clean URL routing — map /name => /name.html, redirect /name.html => /name
 const PAGES = {
   "/": "index.html",
+  "/demo": "demo.html",
   "/sign-in": "auth.html",
   "/sign-up": "auth.html",
   "/dashboard": "dashboard.html",

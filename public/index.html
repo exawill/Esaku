@@ -1,277 +1,828 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Esaku — QRIS Payment Gateway, 0.7% Flat Fee</title>
-    <meta
-      name="description"
-      content="Esaku is a modern QRIS payment gateway built for Indonesian businesses. One flat 0.7% fee, simple dashboard, fast withdrawals."
-    />
-    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-    <link
-      rel="preconnect"
-      href="https://fonts.googleapis.com"
-    />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <script src="/js/theme.js"></script>
-  </head>
-  <body class="font-sans">
-    <!-- Header -->
-    <header class="sticky top-0 z-30 backdrop-blur bg-cream-50/80 dark:bg-ink-900/80 border-b border-ink-900/5 dark:border-cream-100/5">
-      <div class="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2 font-display font-bold text-lg">
-          <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900">e</span>
-          Esaku
-        </a>
-        <nav class="hidden md:flex items-center gap-8">
-          <a href="#product" class="nav-link" data-i18n="nav.product">Product</a>
-          <a href="#pricing" class="nav-link" data-i18n="nav.pricing">Pricing</a>
-          <a href="#features" class="nav-link" data-i18n="nav.feature">Features</a>
-        </nav>
-        <div class="flex items-center gap-2">
-          <button id="lang-toggle" class="btn-ghost" aria-label="Toggle language" title="Language">
-            <!-- shadcn-style globe icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span id="lang-label" class="text-xs font-semibold">EN</span>
-          </button>
-          <button id="theme-toggle" class="btn-ghost" aria-label="Toggle theme" title="Theme">
-            <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-            <svg id="icon-moon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          </button>
-          <a href="/sign-in" class="btn-secondary hidden sm:inline-flex" data-i18n="nav.signin">Sign in</a>
-          <a href="/sign-up" class="btn-primary" data-i18n="nav.signup">Sign up free</a>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — QRIS Merchant Tanpa KYC</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:#f7f3ec;color:#141210;-webkit-font-smoothing:antialiased;line-height:1.6}
+
+:root{
+  --ink:#141210;
+  --ink-mid:#5a5550;
+  --ink-lt:#9a9390;
+  --cream:#f7f3ec;
+  --cream-dk:#ede8df;
+  --cream-md:#e4ddd2;
+  --border:#ddd7ce;
+  --white:#ffffff;
+  --indigo:#2d22c8;
+  --indigo-lt:#eceafc;
+  --green:#1a7a42;
+  --green-lt:#e4f2eb;
+  --red:#bc2020;
+  --amber:#a06010;
+  --amber-lt:#fdf3e0;
+}
+
+/* ── LAYOUT ── */
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+.container-sm{max-width:760px;margin:0 auto;padding:0 24px}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(247,243,236,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 24px;max-width:1120px;margin:0 auto;
+}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-logo span{font-weight:800;font-size:20px;letter-spacing:-0.025em;color:var(--ink)}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:13px;font-weight:600;color:var(--ink-mid);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a.is-active{color:var(--indigo)}
+.nav-cta{display:flex;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:0.01em;
+  border:none;cursor:pointer;border-radius:6px;transition:all 0.15s;text-decoration:none;
+}
+.btn-dark{background:var(--ink);color:var(--white);padding:12px 22px;font-size:14px}
+.btn-dark:hover{background:#333}
+.btn-indigo{background:var(--indigo);color:var(--white);padding:12px 22px;font-size:14px}
+.btn-indigo:hover{background:#1e18a0}
+.btn-outline{background:transparent;color:var(--ink);padding:11px 20px;font-size:14px;border:1.5px solid var(--border)}
+.btn-outline:hover{background:var(--cream-dk)}
+.btn-sm{padding:9px 16px;font-size:12px}
+.btn-lg{padding:15px 32px;font-size:15px}
+
+/* ── HERO ── */
+.hero{
+  padding:80px 0 64px;
+  border-bottom:1px solid var(--border);
+}
+.hero-grid{
+  display:grid;
+  grid-template-columns:1fr 480px;
+  gap:60px;
+  align-items:center;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--indigo-lt);color:var(--indigo);
+  padding:5px 12px;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.07em;
+  margin-bottom:18px;
+}
+.hero h1{
+  font-size:clamp(32px,4.5vw,54px);
+  font-weight:800;line-height:1.1;
+  letter-spacing:-0.04em;
+  color:var(--ink);
+  margin-bottom:18px;
+}
+.hero h1 em{color:var(--indigo);font-style:normal}
+.hero-sub{
+  font-size:16px;color:var(--ink-mid);line-height:1.65;
+  max-width:460px;margin-bottom:28px;
+}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px}
+.hero-trust{
+  display:flex;align-items:center;gap:10px;
+  font-size:12px;color:var(--ink-lt);font-weight:500;
+}
+.hero-trust-dot{width:4px;height:4px;border-radius:50%;background:var(--border)}
+
+/* ── PHONE MOCKUP ── */
+.phone-wrap{
+  position:relative;display:flex;justify-content:center;
+}
+.phone-shell{
+  width:280px;
+  background:var(--ink);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(20,18,16,0.15), 0 20px 60px rgba(20,18,16,0.18);
+  position:relative;
+}
+.phone-screen{
+  background:#f7f3ec;
+  overflow:hidden;
+}
+
+/* ── STATS BAR ── */
+.stats-bar{
+  background:var(--ink);
+  padding:32px 0;
+}
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+}
+.stat-item{
+  padding:0 32px;
+  border-right:1px solid rgba(255,255,255,0.08);
+  text-align:center;
+}
+.stat-item:last-child{border-right:none}
+.stat-num{font-size:32px;font-weight:800;color:var(--white);letter-spacing:-0.04em;line-height:1}
+.stat-label{font-size:12px;color:#888;margin-top:4px;font-weight:500}
+
+/* ── SECTION ── */
+.section{padding:72px 0;border-bottom:1px solid var(--border)}
+.section-label{
+  font-size:11px;font-weight:700;color:var(--ink-mid);
+  text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;
+}
+.section-title{
+  font-size:clamp(24px,3vw,36px);font-weight:800;
+  letter-spacing:-0.03em;color:var(--ink);line-height:1.15;
+  margin-bottom:12px;
+}
+.section-sub{font-size:15px;color:var(--ink-mid);line-height:1.65;max-width:520px}
+
+/* ── FEATURES ── */
+.features-grid{
+  display:grid;
+  border-radius:10px;
+  overflow:hidden;
+  grid-template-columns:repeat(3,1fr);
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  margin-top:48px;
+}
+.feature-card{
+  background:var(--white);
+  padding:28px 24px;
+}
+.feature-icon{
+  width:36px;height:36px;
+  background:var(--indigo-lt);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+}
+.feature-title{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.feature-desc{font-size:13px;color:var(--ink-mid);line-height:1.55}
+
+/* ── PRICING ── */
+.pricing-card{
+  background:var(--white);
+  border-radius:10px;
+  border:1.5px solid var(--border);
+  padding:40px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:40px;
+  align-items:center;
+  margin-top:48px;
+}
+.price-big{
+  font-size:72px;font-weight:800;
+  letter-spacing:-0.05em;color:var(--indigo);
+  line-height:1;
+}
+.price-unit{font-size:20px;color:var(--ink-mid);font-weight:600}
+
+/* ── HOW IT WORKS ── */
+.steps{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:24px;
+  margin-top:48px;
+  position:relative;
+}
+.step{
+  display:flex;flex-direction:column;gap:10px;
+  border-radius:8px;
+  padding:20px;background:var(--white);border:1px solid var(--border);
+  position:relative;
+}
+.step-num{
+  width:28px;height:28px;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:var(--white);
+  letter-spacing:0.02em;
+  flex-shrink:0;
+}
+.step-title{font-size:13px;font-weight:700;color:var(--ink)}
+.step-desc{font-size:12px;color:var(--ink-mid);line-height:1.55}
+
+/* ── QRIS PREVIEW ── */
+.qris-preview{
+  background:var(--ink);
+  padding:32px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:16px;
+  margin-top:48px;
+  max-width:340px;
+}
+
+/* ── FAQ ── */
+.faq-list{margin-top:40px;display:flex;flex-direction:column;gap:6px}
+.faq-item{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.faq-q{
+  width:100%;display:flex;justify-content:space-between;align-items:center;
+  padding:16px 20px;font-size:14px;font-weight:600;color:var(--ink);
+  background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+  text-align:left;
+}
+.faq-a{
+  padding:0 20px 16px;font-size:13px;color:var(--ink-mid);line-height:1.65;
+  display:none;
+}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .faq-chevron{transform:rotate(180deg)}
+.faq-chevron{transition:transform 0.2s;flex-shrink:0}
+
+/* ── CTA BANNER ── */
+.cta-banner{
+  background:var(--ink);
+  padding:64px 0;
+}
+.cta-inner{
+  display:flex;align-items:center;justify-content:space-between;gap:32px;
+  max-width:1120px;margin:0 auto;padding:0 24px;
+}
+.cta-text h2{
+  font-size:clamp(24px,3vw,40px);font-weight:800;
+  color:var(--white);letter-spacing:-0.035em;line-height:1.15;
+  margin-bottom:8px;
+}
+.cta-text p{font-size:14px;color:#888}
+.cta-actions{display:flex;gap:10px;flex-shrink:0;flex-wrap:wrap}
+
+/* ── FOOTER ── */
+footer{
+  background:#0e0c0a;
+  padding:56px 0 0;
+  color:#888;
+}
+.footer-grid{
+  display:grid;
+  grid-template-columns:280px 1fr 1fr 1fr;
+  gap:48px;
+  padding-bottom:48px;
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.footer-brand p{font-size:13px;color:#666;line-height:1.65;margin-top:12px;max-width:220px}
+.footer-col h4{
+  font-size:11px;font-weight:700;color:#555;
+  text-transform:uppercase;letter-spacing:0.08em;
+  margin-bottom:14px;
+}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.footer-col ul li a{
+  font-size:13px;color:#666;text-decoration:none;
+  transition:color 0.15s;font-weight:500;
+}
+.footer-col ul li a:hover{color:#ccc}
+.footer-bottom{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 0;flex-wrap:wrap;gap:12px;
+}
+.footer-bottom p{font-size:12px;color:#444}
+.footer-legal{display:flex;gap:20px}
+.footer-legal a{font-size:12px;color:#444;text-decoration:none}
+.footer-legal a:hover{color:#888}
+.footer-badge{
+  border-radius:4px;
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.05);
+  padding:4px 10px;margin-top:12px;
+}
+.footer-badge span{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.07em}
+
+/* ── TAG ── */
+.tag{
+  display:inline-flex;align-items:center;
+  padding:3px 8px;font-size:10px;font-weight:700;
+  letter-spacing:0.05em;text-transform:uppercase;
+}
+.tag-green{background:var(--green-lt);color:var(--green)}
+.tag-indigo{background:var(--indigo-lt);color:var(--indigo)}
+.tag-amber{background:var(--amber-lt);color:var(--amber)}
+
+/* ── CALCULATOR ── */
+.calc-wrap{
+  background:var(--white);
+  border-radius:8px;
+  border:1.5px solid var(--border);
+  padding:28px;
+  margin-top:40px;
+}
+.calc-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.calc-field{display:flex;flex-direction:column;gap:5px}
+.calc-label{font-size:10px;font-weight:700;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.07em}
+.calc-input-wrap{display:flex;align-items:center;border:1.5px solid var(--border);background:var(--cream)}
+.calc-prefix{padding:0 12px;font-size:13px;font-weight:600;color:var(--ink-mid);border-right:1px solid var(--border);align-self:stretch;display:flex;align-items:center}
+.calc-input{flex:1;border:none;outline:none;background:transparent;padding:11px 13px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;color:var(--ink)}
+.calc-result{padding:10px 13px;background:var(--cream);border:1.5px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.calc-result-label{font-size:9px;font-weight:700;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.07em}
+.calc-result-value{font-size:16px;font-weight:800;letter-spacing:-0.02em}
+
+/* ── MOBILE MENU ── */
+.mobile-menu-btn{display:none;background:none;border:none;cursor:pointer;padding:4px}
+.mobile-nav{display:none;position:fixed;inset:0;background:var(--cream);z-index:200;flex-direction:column;padding:20px 24px;gap:0}
+.mobile-nav.open{display:flex}
+.mobile-nav-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+.mobile-nav-links{display:flex;flex-direction:column;gap:2px;flex:1}
+.mobile-nav-links a{padding:14px 0;font-size:17px;font-weight:700;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--border)}
+.mobile-nav-cta{display:flex;flex-direction:column;gap:8px;margin-top:24px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr;gap:40px}
+  .phone-wrap{display:none}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:0}
+  .stat-item:nth-child(2){border-right:none}
+  .stat-item:nth-child(3){border-top:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08)}
+  .stat-item:nth-child(4){border-top:1px solid rgba(255,255,255,0.08)}
+  .features-grid{grid-template-columns:1fr}
+  .steps{grid-template-columns:1fr 1fr}
+  .pricing-card{grid-template-columns:1fr;gap:24px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .cta-inner{flex-direction:column;align-items:flex-start}
+  .nav-links{display:none}
+  .nav-cta{display:none}
+  .mobile-menu-btn{display:flex}
+}
+@media(max-width:600px){
+  .hero{padding:48px 0 40px}
+  .section{padding:48px 0}
+  .steps{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .calc-row{grid-template-columns:1fr}
+  .hero-actions{flex-direction:column;align-items:flex-start}
+  .cta-banner{padding:48px 0}
+  .footer-bottom{flex-direction:column;align-items:flex-start}
+  .pricing-card{padding:24px}
+  .price-big{font-size:56px}
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-header">
+    <a href="#" class="nav-logo" style="text-decoration:none">
+      <svg width="26" height="26" viewBox="0 0 80 80" fill="none">
+        <rect x="8" y="8" width="56" height="56" rx="10" transform="rotate(8 40 40)" fill="#141210"/>
+        <text x="14" y="58" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="white" font-style="italic">e</text>
+        <path d="M26 62 Q38 74 54 66 Q64 60 58 50" stroke="#2d22c8" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M33 68 Q44 78 58 70" stroke="#2d22c8" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.55"/>
+      </svg>
+      <span>Esaku</span>
+    </a>
+    <button onclick="closeMobileNav()" style="background:none;border:none;cursor:pointer">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141210" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="mobile-nav-links">
+    <a href="#fitur" onclick="closeMobileNav()">Fitur</a>
+    <a href="#harga" onclick="closeMobileNav()">Harga</a>
+    <a href="#cara-kerja" onclick="closeMobileNav()">Cara Kerja</a>
+    <a href="#faq" onclick="closeMobileNav()">FAQ</a>
+    <a href="/demo" onclick="closeMobileNav()">Coba Demo</a>
+  </div>
+  <div class="mobile-nav-cta">
+    <a href="/sign-in" class="btn btn-outline" style="justify-content:center">Masuk</a>
+    <a href="/sign-up" class="btn btn-dark" style="justify-content:center">Daftar Sekarang</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <svg width="26" height="26" viewBox="0 0 80 80" fill="none">
+        <rect x="8" y="8" width="56" height="56" rx="10" transform="rotate(8 40 40)" fill="#141210"/>
+        <text x="14" y="58" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="white" font-style="italic">e</text>
+        <path d="M26 62 Q38 74 54 66 Q64 60 58 50" stroke="#2d22c8" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M33 68 Q44 78 58 70" stroke="#2d22c8" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.55"/>
+      </svg>
+      <span>Esaku</span>
+    </a>
+    <div class="nav-links">
+      <a href="#fitur">Fitur</a>
+      <a href="#harga">Harga</a>
+      <a href="#cara-kerja">Cara Kerja</a>
+      <a href="#faq">FAQ</a>
+      <a href="/demo">Coba Demo</a>
+    </div>
+    <div class="nav-cta">
+      <a href="/sign-in" class="btn btn-outline btn-sm">Masuk</a>
+      <a href="/sign-up" class="btn btn-dark btn-sm">Daftar Gratis</a>
+    </div>
+    <button class="mobile-menu-btn" onclick="openMobileNav()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#141210" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-badge">
+          <div style="width:6px;height:6px;border-radius:50%;background:#2d22c8"></div>
+          MVP Preview · Tanpa KYC
+        </div>
+        <h1>QRIS Merchant<br/>untuk <em>Perorangan</em><br/>Tanpa Ribet</h1>
+        <p class="hero-sub">
+          Terima pembayaran dari semua e-wallet dan bank hanya dengan scan QR. Daftar dengan email — tanpa upload KTP, tanpa dokumen, tanpa antri.
+        </p>
+        <div class="hero-actions">
+          <a href="/sign-up" class="btn btn-dark btn-lg">Mulai Gratis — Daftar Sekarang</a>
+          <a href="/demo" class="btn btn-outline btn-lg">Coba Demo Sekarang</a>
+          <a href="#cara-kerja" class="btn btn-outline btn-lg">Lihat Cara Kerja</a>
+        </div>
+        <div class="hero-trust">
+          <div style="width:6px;height:6px;border-radius:50%;background:#1a7a42"></div>
+          <span style="color:#1a7a42;font-weight:600">Aktif instan</span>
+          <div class="hero-trust-dot"></div>
+          <span>Tanpa biaya bulanan</span>
+          <div class="hero-trust-dot"></div>
+          <span>MDR 0,7% flat</span>
+          <div class="hero-trust-dot"></div>
+          <span>Cairkan hingga Rp 5 jt/minggu</span>
         </div>
       </div>
-    </header>
 
-    <!-- Hero -->
-    <section id="product" class="relative overflow-hidden">
-      <div class="mx-auto max-w-7xl px-6 pt-16 pb-20 lg:pt-24 lg:pb-32 grid lg:grid-cols-2 gap-12 items-center">
-        <div>
-          <span class="pill" data-i18n="hero.eyebrow">Built for Indonesia</span>
-          <h1 class="mt-5 font-display font-bold text-4xl sm:text-5xl lg:text-6xl tracking-tight" data-i18n="hero.title">
-            Accept QRIS payments at a flat 0.7% fee.
-          </h1>
-          <p class="mt-5 text-lg text-ink-600 dark:text-cream-200 max-w-xl" data-i18n="hero.subtitle">
-            Esaku is the modern QRIS payment gateway for creators, shops, and businesses. One dashboard, transparent pricing, and fast withdrawals.
-          </p>
-          <div class="mt-8 flex flex-wrap items-center gap-3">
-            <a href="/sign-up" class="btn-primary" data-i18n="hero.cta_primary">Start free</a>
-            <a href="#preview" class="btn-secondary" data-i18n="hero.cta_secondary">See dashboard</a>
-            <span class="pill bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900" data-i18n="hero.badge">0.7% Flat Fee</span>
+      <!-- Phone mockup -->
+      <div class="phone-wrap">
+        <div class="phone-shell">
+          <!-- Status bar -->
+          <div style="background:#141210;display:flex;justify-content:space-between;align-items:center;padding:12px 16px 6px">
+            <span style="font-size:11px;font-weight:700;color:white">9:41</span>
+            <span style="font-size:10px;color:#888">100%</span>
           </div>
-        </div>
-
-        <!-- Hero/MVP product preview card -->
-        <div class="relative">
-          <div class="card p-6 lg:p-8 rotate-1">
-            <div class="flex items-start justify-between">
+          <!-- Screen content -->
+          <div class="phone-screen" style="padding:16px">
+            <!-- balance card -->
+            <div style="background:#141210;padding:16px;margin-bottom:12px">
+              <div style="font-size:8px;color:#666;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Saldo Tersedia</div>
+              <div style="font-size:22px;font-weight:800;color:white;letter-spacing:-0.03em">Rp 4.287.500</div>
+              <div style="margin-top:10px;display:inline-block;background:#2d22c8;padding:5px 12px;font-size:10px;font-weight:700;color:white">Cairkan Dana</div>
+            </div>
+            <!-- Chart label -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div style="font-size:10px;font-weight:700;color:#141210">Pendapatan 7 Hari</div>
+              <div style="font-size:9px;color:#2d22c8;font-weight:700">30H</div>
+            </div>
+            <!-- Mini bar chart -->
+            <div style="display:flex;align-items:flex-end;gap:3px;height:60px;background:white;padding:8px 8px 4px;border:1px solid #ddd7ce;margin-bottom:10px">
+              <div style="flex:1;height:40%;background:#eceafc"></div>
+              <div style="flex:1;height:58%;background:#eceafc"></div>
+              <div style="flex:1;height:34%;background:#eceafc"></div>
+              <div style="flex:1;height:78%;background:#eceafc"></div>
+              <div style="flex:1;height:70%;background:#eceafc"></div>
+              <div style="flex:1;height:100%;background:#2d22c8"></div>
+              <div style="flex:1;height:52%;background:#eceafc"></div>
+            </div>
+            <!-- Recent tx -->
+            <div style="font-size:9px;font-weight:700;color:#141210;margin-bottom:6px">Transaksi Terkini</div>
+            <div style="background:white;padding:8px 10px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;border:1px solid #ddd7ce;border-radius:4px">
               <div>
-                <p class="text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">QRIS · Esaku</p>
-                <p class="mt-1 font-display text-2xl font-bold">IDR 250.000</p>
+                <div style="font-size:10px;font-weight:600;color:#141210">Warung Makan Sari</div>
+                <div style="font-size:8px;color:#9a9390">GoPay · QRIS</div>
               </div>
-              <span class="pill bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-300">Active</span>
+              <div style="font-size:11px;font-weight:800;color:#1a7a42">+Rp 45.000</div>
             </div>
-            <div class="mt-5 aspect-square rounded-2xl bg-cream-50 dark:bg-ink-700 flex items-center justify-center p-6">
-              <!-- Decorative QR -->
-              <svg viewBox="0 0 100 100" class="w-full h-full" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <rect width="100" height="100" fill="transparent"/>
-                <g fill="currentColor" class="text-ink-900 dark:text-cream-100">
-                  <rect x="5" y="5" width="20" height="20" rx="2"/>
-                  <rect x="9" y="9" width="12" height="12" rx="1" fill="white" class="dark:fill-ink-700"/>
-                  <rect x="13" y="13" width="4" height="4"/>
-                  <rect x="75" y="5" width="20" height="20" rx="2"/>
-                  <rect x="79" y="9" width="12" height="12" rx="1" fill="white" class="dark:fill-ink-700"/>
-                  <rect x="83" y="13" width="4" height="4"/>
-                  <rect x="5" y="75" width="20" height="20" rx="2"/>
-                  <rect x="9" y="79" width="12" height="12" rx="1" fill="white" class="dark:fill-ink-700"/>
-                  <rect x="13" y="83" width="4" height="4"/>
-                  <rect x="35" y="10" width="6" height="6"/>
-                  <rect x="45" y="6" width="4" height="4"/>
-                  <rect x="55" y="12" width="6" height="6"/>
-                  <rect x="65" y="6" width="4" height="4"/>
-                  <rect x="35" y="25" width="4" height="4"/>
-                  <rect x="45" y="22" width="6" height="6"/>
-                  <rect x="55" y="28" width="4" height="4"/>
-                  <rect x="62" y="25" width="6" height="6"/>
-                  <rect x="32" y="40" width="6" height="6"/>
-                  <rect x="42" y="36" width="4" height="4"/>
-                  <rect x="50" y="42" width="6" height="6"/>
-                  <rect x="60" y="36" width="6" height="6"/>
-                  <rect x="70" y="42" width="4" height="4"/>
-                  <rect x="35" y="55" width="4" height="4"/>
-                  <rect x="42" y="58" width="6" height="6"/>
-                  <rect x="52" y="55" width="4" height="4"/>
-                  <rect x="60" y="58" width="6" height="6"/>
-                  <rect x="72" y="55" width="6" height="6"/>
-                  <rect x="35" y="70" width="6" height="6"/>
-                  <rect x="45" y="74" width="4" height="4"/>
-                  <rect x="55" y="68" width="6" height="6"/>
-                  <rect x="65" y="74" width="4" height="4"/>
-                  <rect x="72" y="70" width="6" height="6"/>
-                  <rect x="32" y="85" width="4" height="4"/>
-                  <rect x="42" y="82" width="6" height="6"/>
-                  <rect x="55" y="85" width="4" height="4"/>
-                  <rect x="62" y="82" width="6" height="6"/>
-                  <rect x="72" y="85" width="6" height="6"/>
-                </g>
-              </svg>
-            </div>
-            <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
+            <div style="background:white;padding:8px 10px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:center;border:1px solid #ddd7ce;border-radius:4px">
               <div>
-                <p class="text-ink-600 dark:text-cream-200" data-i18n="qris.expires">Expires in</p>
-                <p class="font-semibold">14:59</p>
+                <div style="font-size:10px;font-weight:600;color:#141210">Toko Baju Murah</div>
+                <div style="font-size:8px;color:#9a9390">OVO · QRIS</div>
               </div>
-              <div>
-                <p class="text-ink-600 dark:text-cream-200" data-i18n="qris.fee_note">A flat 0.7% fee is deducted on payment.</p>
-              </div>
+              <div style="font-size:11px;font-weight:800;color:#1a7a42">+Rp 215.000</div>
             </div>
           </div>
-          <div class="absolute -bottom-6 -left-6 card p-4 hidden md:block">
-            <p class="text-xs text-ink-600 dark:text-cream-200">Net received</p>
-            <p class="font-display text-xl font-bold">IDR 248.250</p>
+          <!-- Bottom nav -->
+          <div style="background:#f7f3ec;border-top:1px solid #ddd7ce;display:flex;padding:6px 0 10px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-size:13px">🏠</span>
+              <span style="font-size:7px;font-weight:700;color:#2d22c8">Beranda</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-size:13px">📋</span>
+              <span style="font-size:7px;font-weight:500;color:#9a9390">Riwayat</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-size:13px">⬛</span>
+              <span style="font-size:7px;font-weight:500;color:#9a9390">QRIS</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-size:13px">💸</span>
+              <span style="font-size:7px;font-weight:500;color:#9a9390">Cairkan</span>
+            </div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-size:13px">👤</span>
+              <span style="font-size:7px;font-weight:500;color:#9a9390">Profil</span>
+            </div>
+          </div>
+        </div>
+        <!-- Glow -->
+        <div style="position:absolute;bottom:-40px;left:50%;transform:translateX(-50%);width:200px;height:60px;background:#2d22c8;filter:blur(40px);opacity:0.2;pointer-events:none"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-num">0,7%</div>
+        <div class="stat-label">MDR Flat — ditanggung pembeli</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">Rp 5 Jt</div>
+        <div class="stat-label">Limit pencairan per minggu</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">15 Mnt</div>
+        <div class="stat-label">Masa berlaku QRIS per transaksi</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">0 KTP</div>
+        <div class="stat-label">Tanpa verifikasi dokumen</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="fitur">
+  <div class="container">
+    <div class="section-label">Fitur Platform</div>
+    <h2 class="section-title">Semua yang Anda butuhkan,<br/>tidak lebih, tidak kurang</h2>
+    <p class="section-sub">Dirancang khusus untuk individu dan usaha kecil yang ingin mulai menerima pembayaran digital hari ini.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d22c8" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="feature-title">Tanpa KYC</div>
+        <p class="feature-desc">Daftar hanya dengan username dan email. Tidak perlu upload KTP, selfie, atau dokumen apapun.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d22c8" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg></div>
+        <div class="feature-title">QRIS dengan Nominal</div>
+        <p class="feature-desc">Generate QRIS spesifik per transaksi. Berlaku 15 menit, lalu expired otomatis.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d22c8" stroke-width="2.5" stroke-linecap="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div>
+        <div class="feature-title">Dashboard Analitik</div>
+        <p class="feature-desc">Pantau omset 7, 30, atau 90 hari. Grafik batang interaktif dan ringkasan statistik.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d22c8" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></div>
+        <div class="feature-title">Cairkan Dana Mudah</div>
+        <p class="feature-desc">Transfer ke e-wallet (Rp 2.500) atau bank (Rp 6.500). Minimal Rp 50.000, maksimal Rp 5 juta/minggu.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d22c8" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+        <div class="feature-title">Multi E-Wallet &amp; Bank</div>
+        <p class="feature-desc">Terima dari GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BNI, BRI, dan semua bank.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d22c8" stroke-width="2.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="feature-title">Riwayat Lengkap</div>
+        <p class="feature-desc">Semua transaksi tercatat. Filter berdasarkan status, cari, dan lihat detail MDR per transaksi.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="harga">
+  <div class="container">
+    <div class="section-label">Harga</div>
+    <h2 class="section-title">Satu harga, transparan,<br/>tidak ada kejutan</h2>
+    <p class="section-sub">MDR 0,7% ditanggung oleh pembeli — Anda selalu menerima nominal penuh.</p>
+
+    <div class="pricing-card">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#9a9390;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">MDR per Transaksi</div>
+        <div style="display:flex;align-items:flex-end;gap:6px;margin-bottom:16px">
+          <div class="price-big">0,7%</div>
+          <div class="price-unit" style="margin-bottom:10px">flat</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a42" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px;color:#5a5550">Ditanggung oleh pembeli</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a42" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px;color:#5a5550">Merchant terima nominal penuh</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a42" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px;color:#5a5550">Tidak ada biaya setup</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a42" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px;color:#5a5550">Tidak ada biaya bulanan</span></div>
+          <div style="display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a42" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:13px;color:#5a5550">Tidak ada biaya per-akun</span></div>
+        </div>
+        <div style="margin-top:24px">
+          <a href="/sign-up" class="btn btn-dark">Mulai Gratis →</a>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#9a9390;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">Kalkulator MDR</div>
+        <div class="calc-wrap" style="margin-top:0;border:1.5px solid #ddd7ce;padding:20px;background:#f7f3ec">
+          <div class="calc-field">
+            <div class="calc-label">Nominal Transaksi</div>
+            <div class="calc-input-wrap">
+              <div class="calc-prefix">Rp</div>
+              <input class="calc-input" type="number" id="calcAmt" value="100000" oninput="updateCalc()" placeholder="0"/>
+            </div>
+          </div>
+          <div class="calc-row">
+            <div class="calc-result" style="background:#fdf3e0;border-color:#a0601022">
+              <div class="calc-result-label" style="color:#a06010">MDR (0,7%)</div>
+              <div class="calc-result-value" id="calcFee" style="color:#a06010">Rp 700</div>
+            </div>
+            <div class="calc-result" style="background:#e4f2eb;border-color:#1a7a4222">
+              <div class="calc-result-label" style="color:#1a7a42">Pembeli Bayar</div>
+              <div class="calc-result-value" id="calcBuyer" style="color:#1a7a42">Rp 100.700</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;padding:10px 12px;background:#eceafc;border-left:3px solid #2d22c8">
+            <div style="font-size:10px;color:#5a5550;font-weight:600">Anda (merchant) selalu menerima:</div>
+            <div id="calcNet" style="font-size:18px;font-weight:800;color:#141210;letter-spacing:-0.02em;margin-top:2px">Rp 100.000</div>
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <div style="font-size:11px;font-weight:700;color:#9a9390;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">Biaya Pencairan</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="padding:10px 12px;background:white;border:1px solid #ddd7ce">
+              <div style="font-size:9px;color:#9a9390;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">E-Wallet</div>
+              <div style="font-size:15px;font-weight:800;color:#141210;margin-top:3px">Rp 2.500</div>
+            </div>
+            <div style="padding:10px 12px;background:white;border:1px solid #ddd7ce">
+              <div style="font-size:9px;color:#9a9390;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">Transfer Bank</div>
+              <div style="font-size:15px;font-weight:800;color:#141210;margin-top:3px">Rp 6.500</div>
+            </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-    <!-- Features -->
-    <section id="features" class="bg-cream-100 dark:bg-ink-800/60">
-      <div class="mx-auto max-w-7xl px-6 py-20">
-        <div class="max-w-2xl">
-          <h2 class="font-display text-3xl sm:text-4xl font-bold" data-i18n="feature.title">
-            Everything you need to get paid
-          </h2>
-          <p class="mt-3 text-ink-600 dark:text-cream-200" data-i18n="feature.subtitle">
-            Tools designed around how Indonesian businesses actually operate.
-          </p>
+<!-- HOW IT WORKS -->
+<section class="section" id="cara-kerja">
+  <div class="container">
+    <div class="section-label">Cara Kerja</div>
+    <h2 class="section-title">Aktif dalam hitungan menit</h2>
+    <p class="section-sub">Tidak perlu antri, tidak perlu datang ke kantor, tidak perlu kirim dokumen.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><div class="step-title">Daftar dengan Email</div><p class="step-desc">Masukkan username dan email Anda. Tidak perlu verifikasi identitas atau upload dokumen apapun.</p></div>
+      <div class="step"><div class="step-num">02</div><div class="step-title">Akun Langsung Aktif</div><p class="step-desc">Setelah daftar, akun merchant QRIS Anda langsung aktif dan siap digunakan.</p></div>
+      <div class="step"><div class="step-num">03</div><div class="step-title">Generate QRIS</div><p class="step-desc">Masukkan nominal, buat QRIS. Berlaku 15 menit. Tampilkan ke pelanggan untuk di-scan.</p></div>
+      <div class="step"><div class="step-num">04</div><div class="step-title">Cairkan Dana</div><p class="step-desc">Dana masuk ke saldo Anda. Cairkan kapan saja ke e-wallet atau rekening bank.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="container-sm">
+    <div class="section-label">FAQ</div>
+    <h2 class="section-title">Pertanyaan yang sering ditanyakan</h2>
+    <div class="faq-list">
+      <div class="faq-item" id="faq0"><button class="faq-q" onclick="toggleFaq(0)"><span>Apakah benar-benar tidak perlu KTP?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="faq-a">Benar. Esaku dirancang untuk perorangan yang ingin langsung aktif menerima QRIS tanpa proses KYC. Anda hanya perlu username dan email.</div></div>
+      <div class="faq-item" id="faq1"><button class="faq-q" onclick="toggleFaq(1)"><span>Siapa yang menanggung biaya MDR 0,7%?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="faq-a">Pembeli / pelanggan yang menanggung. Jika Anda menerima pembayaran Rp 10.000, pembeli akan membayar Rp 10.070. Anda tetap menerima Rp 10.000 penuh.</div></div>
+      <div class="faq-item" id="faq2"><button class="faq-q" onclick="toggleFaq(2)"><span>Berapa lama QRIS berlaku setelah dibuat?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="faq-a">Setiap QRIS yang dibuat berlaku selama 15 menit. Setelah itu, QRIS akan kadaluarsa dan Anda perlu membuat QRIS baru untuk transaksi berikutnya.</div></div>
+      <div class="faq-item" id="faq3"><button class="faq-q" onclick="toggleFaq(3)"><span>Berapa limit pencairan dana?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="faq-a">Minimum pencairan adalah Rp 50.000 per transaksi. Maksimum adalah Rp 5.000.000 per minggu. Biaya transfer ke e-wallet Rp 2.500, ke rekening bank Rp 6.500.</div></div>
+      <div class="faq-item" id="faq4"><button class="faq-q" onclick="toggleFaq(4)"><span>E-wallet dan bank apa saja yang didukung?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="faq-a">Untuk pembayaran: semua e-wallet dan bank yang mendukung QRIS (GoPay, OVO, DANA, ShopeePay, LinkAja, dan semua aplikasi mobile banking). Untuk pencairan: GoPay, OVO, DANA, ShopeePay, LinkAja, BCA, Mandiri, BNI, BRI, BSI, CIMB, dan bank lainnya.</div></div>
+      <div class="faq-item" id="faq5"><button class="faq-q" onclick="toggleFaq(5)"><span>Apakah ada biaya bulanan atau biaya lainnya?</span><svg class="faq-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div class="faq-a">Tidak ada biaya bulanan, biaya setup, atau biaya tersembunyi lainnya. Satu-satunya biaya adalah MDR 0,7% per transaksi (ditanggung pembeli) dan biaya pencairan dana.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div class="cta-banner">
+  <div class="cta-inner">
+    <div class="cta-text">
+      <h2>Mulai terima pembayaran<br/>QRIS hari ini</h2>
+      <p>Tanpa KYC. Tanpa biaya bulanan. Aktif dalam menit.</p>
+    </div>
+    <div class="cta-actions">
+      <a href="/sign-up" class="btn btn-indigo btn-lg">Daftar Sekarang — Gratis</a>
+      <a href="/demo" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.2)">Lihat Demo Aplikasi</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="24" height="24" viewBox="0 0 80 80" fill="none">
+            <rect x="8" y="8" width="56" height="56" rx="10" transform="rotate(8 40 40)" fill="white" fill-opacity="0.9"/>
+            <text x="14" y="58" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="#141210" font-style="italic">e</text>
+            <path d="M26 62 Q38 74 54 66 Q64 60 58 50" stroke="#7b8fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span style="font-weight:800;font-size:18px;letter-spacing:-0.025em;color:white">Esaku</span>
         </div>
-        <div class="mt-10 grid md:grid-cols-3 gap-6">
-          <div class="card p-6">
-            <div class="h-10 w-10 rounded-2xl bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M20 14v7"/><path d="M14 20h6"/></svg>
-            </div>
-            <h3 class="mt-4 font-display font-semibold text-lg" data-i18n="feature.qris.title">Universal QRIS</h3>
-            <p class="mt-2 text-sm text-ink-600 dark:text-cream-200" data-i18n="feature.qris.body">Generate QRIS codes that work with every major Indonesian wallet and bank app.</p>
-          </div>
-          <div class="card p-6">
-            <div class="h-10 w-10 rounded-2xl bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </div>
-            <h3 class="mt-4 font-display font-semibold text-lg" data-i18n="feature.fees.title">Transparent fees</h3>
-            <p class="mt-2 text-sm text-ink-600 dark:text-cream-200" data-i18n="feature.fees.body">0.7% flat per QRIS transaction. Withdraw to bank for IDR 6,500 or e-wallet for IDR 2,500.</p>
-          </div>
-          <div class="card p-6">
-            <div class="h-10 w-10 rounded-2xl bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>
-            </div>
-            <h3 class="mt-4 font-display font-semibold text-lg" data-i18n="feature.dash.title">Simple dashboard</h3>
-            <p class="mt-2 text-sm text-ink-600 dark:text-cream-200" data-i18n="feature.dash.body">See activity over 7, 30, or 90 days. Filter, export, and track every payment.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Dashboard preview -->
-    <section id="preview">
-      <div class="mx-auto max-w-7xl px-6 py-20">
-        <div class="max-w-2xl">
-          <h2 class="font-display text-3xl sm:text-4xl font-bold" data-i18n="preview.title">A dashboard you'll actually want to open</h2>
-          <p class="mt-3 text-ink-600 dark:text-cream-200" data-i18n="preview.subtitle">Activity at a glance. Generate a QRIS, withdraw, and view transactions — all from one place.</p>
-        </div>
-
-        <div class="mt-10 card p-6 lg:p-8">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p class="text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200" data-i18n="common.balance">Balance</p>
-              <p class="font-display font-bold text-3xl">IDR 4.281.500</p>
-            </div>
-            <div class="inline-flex rounded-2xl border border-ink-900/10 dark:border-cream-100/10 p-1">
-              <button class="px-3 py-1.5 rounded-xl text-sm font-medium bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900" data-i18n="common.range_7">7 days</button>
-              <button class="px-3 py-1.5 rounded-xl text-sm font-medium" data-i18n="common.range_30">30 days</button>
-              <button class="px-3 py-1.5 rounded-xl text-sm font-medium" data-i18n="common.range_90">90 days</button>
-            </div>
-          </div>
-
-          <!-- Decorative bar chart preview -->
-          <div class="mt-8 h-56 flex items-end gap-3">
-            <div class="flex-1 rounded-t-2xl bg-ink-900/10 dark:bg-cream-100/10" style="height:30%"></div>
-            <div class="flex-1 rounded-t-2xl bg-ink-900/30 dark:bg-cream-100/30" style="height:55%"></div>
-            <div class="flex-1 rounded-t-2xl bg-ink-900/20 dark:bg-cream-100/20" style="height:42%"></div>
-            <div class="flex-1 rounded-t-2xl bg-ink-900 dark:bg-cream-100" style="height:78%"></div>
-            <div class="flex-1 rounded-t-2xl bg-ink-900/40 dark:bg-cream-100/40" style="height:60%"></div>
-            <div class="flex-1 rounded-t-2xl bg-ink-900/60 dark:bg-cream-100/60" style="height:90%"></div>
-            <div class="flex-1 rounded-t-2xl bg-ink-900/30 dark:bg-cream-100/30" style="height:48%"></div>
-          </div>
-
-          <div class="mt-6 grid sm:grid-cols-3 gap-3">
-            <a href="/generate-qris" class="rounded-2xl bg-cream-200 dark:bg-ink-700 p-4 hover:bg-cream-300 dark:hover:bg-ink-600 transition">
-              <p class="text-xs text-ink-600 dark:text-cream-200" data-i18n="qris.title">Generate QRIS</p>
-              <p class="mt-1 font-semibold">→</p>
-            </a>
-            <a href="/withdrawal" class="rounded-2xl bg-cream-200 dark:bg-ink-700 p-4 hover:bg-cream-300 dark:hover:bg-ink-600 transition">
-              <p class="text-xs text-ink-600 dark:text-cream-200" data-i18n="wd.title">Withdrawal</p>
-              <p class="mt-1 font-semibold">→</p>
-            </a>
-            <a href="/transactions" class="rounded-2xl bg-cream-200 dark:bg-ink-700 p-4 hover:bg-cream-300 dark:hover:bg-ink-600 transition">
-              <p class="text-xs text-ink-600 dark:text-cream-200" data-i18n="tx.title">Transactions</p>
-              <p class="mt-1 font-semibold">→</p>
-            </a>
-          </div>
+        <p>Platform QRIS merchant perorangan. Tanpa KYC, tanpa ribet, langsung aktif.</p>
+        <div class="footer-badge">
+          <div style="width:5px;height:5px;border-radius:50%;background:#1a7a42"></div>
+          <span>MVP Preview · 2025</span>
         </div>
       </div>
-    </section>
 
-    <!-- Pricing -->
-    <section id="pricing" class="bg-cream-100 dark:bg-ink-800/60">
-      <div class="mx-auto max-w-3xl px-6 py-20 text-center">
-        <h2 class="font-display text-3xl sm:text-4xl font-bold" data-i18n="pricing.title">Pricing</h2>
-        <p class="mt-3 text-ink-600 dark:text-cream-200" data-i18n="pricing.subtitle">One simple price. No hidden fees, no monthly minimums.</p>
-
-        <div class="mt-10 card p-8 text-left">
-          <p class="font-display text-5xl font-extrabold">0.7%</p>
-          <p class="mt-1 text-ink-600 dark:text-cream-200" data-i18n="pricing.flat">0.7% per QRIS transaction</p>
-
-          <ul class="mt-6 space-y-3 text-sm">
-            <li class="flex items-center gap-2">
-              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900">✓</span>
-              <span data-i18n="pricing.included_1">Unlimited QRIS generation</span>
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900">✓</span>
-              <span data-i18n="pricing.included_2">7 / 30 / 90 day analytics</span>
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900">✓</span>
-              <span data-i18n="pricing.included_3">Bank & e-wallet withdrawals</span>
-            </li>
-            <li class="flex items-center gap-2">
-              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-ink-900 text-cream-50 dark:bg-cream-100 dark:text-ink-900">✓</span>
-              <span data-i18n="pricing.included_4">English & Indonesian UI</span>
-            </li>
-          </ul>
-          <a href="/sign-up" class="btn-primary w-full mt-8 justify-center" data-i18n="pricing.cta">Sign up for free</a>
-        </div>
+      <div class="footer-col">
+        <h4>Produk</h4>
+        <ul>
+          <li><a href="#fitur">Fitur</a></li>
+          <li><a href="#harga">Harga & MDR</a></li>
+          <li><a href="#cara-kerja">Cara Kerja</a></li>
+          <li><a href="/demo">Demo Aplikasi</a></li>
+        </ul>
       </div>
-    </section>
 
-    <footer class="border-t border-ink-900/5 dark:border-cream-100/5">
-      <div class="mx-auto max-w-7xl px-6 py-10 flex flex-wrap items-center justify-between gap-4 text-sm text-ink-600 dark:text-cream-200">
-        <p data-i18n="footer.copyright">© 2026 Esaku. All rights reserved.</p>
-        <div class="flex items-center gap-4">
-          <a href="/sign-in" class="nav-link" data-i18n="nav.signin">Sign in</a>
-          <a href="/sign-up" class="nav-link" data-i18n="nav.signup">Sign up free</a>
-        </div>
+      <div class="footer-col">
+        <h4>Dukungan</h4>
+        <ul>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#">Panduan Pengguna</a></li>
+          <li><a href="#">Hubungi Kami</a></li>
+          <li><a href="#">Status Layanan</a></li>
+        </ul>
       </div>
-    </footer>
 
-    <script src="/js/i18n.js"></script>
-    <script src="/js/common.js"></script>
-  </body>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Syarat & Ketentuan</a></li>
+          <li><a href="#">Kebijakan Privasi</a></li>
+          <li><a href="#">Kebijakan MDR</a></li>
+          <li><a href="#">Kebijakan Pencairan</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2025 Esaku. Hak cipta dilindungi. Platform QRIS untuk perorangan Indonesia.</p>
+      <div class="footer-legal">
+        <a href="#">Privasi</a>
+        <a href="#">Ketentuan</a>
+        <a href="#">Cookie</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// FAQ toggle
+function toggleFaq(i) {
+  const item = document.getElementById('faq' + i);
+  const wasOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(el => el.classList.remove('open'));
+  if (!wasOpen) item.classList.add('open');
+}
+
+// Mobile nav
+function openMobileNav() {
+  document.getElementById('mobileNav').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileNav() {
+  document.getElementById('mobileNav').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Calculator
+function fmtIDR(n) {
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+function updateCalc() {
+  const amt = parseFloat(document.getElementById('calcAmt').value) || 0;
+  const fee = Math.round(amt * 0.007);
+  const buyer = amt + fee;
+  document.getElementById('calcFee').textContent = fmtIDR(fee);
+  document.getElementById('calcBuyer').textContent = fmtIDR(buyer);
+  document.getElementById('calcNet').textContent = fmtIDR(amt);
+}
+updateCalc();
+
+// Open first FAQ
+document.addEventListener('DOMContentLoaded', function() {
+  var first = document.getElementById('faq0');
+  if (first) first.classList.add('open');
+});
+</script>
+</body>
 </html>

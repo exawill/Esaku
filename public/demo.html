@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — Demo Aplikasi (Tanpa Daftar)</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:#f7f3ec;color:#141210;-webkit-font-smoothing:antialiased;line-height:1.6}
+
+:root{
+  --ink:#141210;--ink-mid:#5a5550;--ink-lt:#9a9390;
+  --cream:#f7f3ec;--cream-dk:#ede8df;--cream-md:#e4ddd2;
+  --border:#ddd7ce;--white:#ffffff;
+  --indigo:#2d22c8;--indigo-lt:#eceafc;--indigo-dk:#1e18a0;
+  --green:#1a7a42;--green-lt:#e4f2eb;
+  --red:#bc2020;--red-lt:#fce8e8;
+  --amber:#a06010;--amber-lt:#fdf3e0;
+}
+
+.container{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* ── NAV (matches landing) ── */
+nav.top{position:sticky;top:0;z-index:100;background:rgba(247,243,236,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1120px;margin:0 auto}
+.nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.nav-logo span{font-weight:800;font-size:20px;letter-spacing:-0.025em;color:var(--ink)}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{font-size:13px;font-weight:600;color:var(--ink-mid);text-decoration:none;transition:color 0.15s}
+.nav-links a:hover{color:var(--ink)}
+.nav-links a.is-active{color:var(--indigo)}
+.nav-cta{display:flex;gap:8px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:0.01em;border:none;cursor:pointer;border-radius:6px;transition:all 0.15s;text-decoration:none}
+.btn-dark{background:var(--ink);color:var(--white);padding:12px 22px;font-size:14px}
+.btn-dark:hover{background:#333}
+.btn-indigo{background:var(--indigo);color:var(--white);padding:12px 22px;font-size:14px}
+.btn-indigo:hover{background:var(--indigo-dk)}
+.btn-outline{background:transparent;color:var(--ink);padding:11px 20px;font-size:14px;border:1.5px solid var(--border)}
+.btn-outline:hover{background:var(--cream-dk)}
+.btn-sm{padding:9px 16px;font-size:12px}
+.btn-lg{padding:15px 32px;font-size:15px}
+
+/* ── DEMO BANNER ── */
+.demo-banner{background:var(--indigo);color:#fff;padding:10px 24px;font-size:12px;font-weight:600;text-align:center;letter-spacing:0.01em}
+.demo-banner strong{font-weight:800;letter-spacing:0.02em;text-transform:uppercase;font-size:11px}
+.demo-banner a{color:#fff;text-decoration:underline;text-underline-offset:3px;font-weight:700}
+
+/* ── DEMO HEADER ── */
+.demo-header{padding:48px 0 24px}
+.demo-eyebrow{font-size:11px;font-weight:700;color:var(--indigo);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.demo-title{font-size:clamp(28px,3.4vw,42px);font-weight:800;letter-spacing:-0.03em;line-height:1.15;margin-bottom:10px}
+.demo-sub{font-size:15px;color:var(--ink-mid);max-width:560px;line-height:1.65}
+
+/* ── TAB BAR ── */
+.tabs{display:flex;gap:6px;margin:24px 0 20px;flex-wrap:wrap;border:1.5px solid var(--border);background:var(--white);padding:5px;border-radius:8px;width:fit-content}
+.tab{padding:9px 16px;font-size:13px;font-weight:700;color:var(--ink-mid);background:none;border:none;cursor:pointer;border-radius:5px;font-family:inherit;transition:all 0.15s;display:inline-flex;align-items:center;gap:7px}
+.tab:hover{color:var(--ink)}
+.tab.is-active{background:var(--ink);color:#fff}
+.tab svg{flex-shrink:0}
+
+/* ── PANEL ── */
+.panel{display:none;background:transparent;padding-bottom:48px}
+.panel.is-active{display:block}
+
+/* ── DASHBOARD PANEL ── */
+.dash-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
+.balance-card{background:var(--ink);color:#fff;padding:24px;border-radius:10px;display:flex;flex-direction:column;gap:14px}
+.balance-card .label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#888}
+.balance-card .amount{font-size:36px;font-weight:800;letter-spacing:-0.03em;line-height:1}
+.balance-card .meta{font-size:11px;color:#888;font-family:'DM Mono',monospace}
+.balance-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+.qris-status{display:inline-flex;align-items:center;gap:6px;padding:0 12px;background:rgba(255,255,255,0.07);border-radius:5px}
+.qris-status .dot{width:6px;height:6px;border-radius:50%;background:#4ade80}
+.qris-status span{font-size:11px;color:#aaa;font-weight:600}
+
+.range-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.range-head{display:flex;justify-content:space-between;align-items:center}
+.range-head h3{font-size:13px;font-weight:700}
+.range-toggle{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.range-toggle button{padding:6px 11px;font-size:11px;font-weight:700;background:var(--white);color:var(--ink-mid);border:none;cursor:pointer;font-family:inherit;border-right:1px solid var(--border)}
+.range-toggle button:last-child{border-right:none}
+.range-toggle button.is-active{background:var(--ink);color:#fff}
+.bars{display:flex;align-items:flex-end;gap:6px;height:140px;padding-top:4px}
+.bar{flex:1;border-radius:4px 4px 0 0;background:var(--indigo-lt);transition:background 0.18s,height 0.3s}
+.bar.peak{background:var(--indigo)}
+.bar:hover{background:var(--indigo)}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-tile{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.stat-tile .l{font-size:10px;font-weight:700;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.07em}
+.stat-tile .v{font-size:18px;font-weight:800;letter-spacing:-0.02em;margin-top:6px}
+
+.recent-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:20px}
+.recent-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.recent-head h3{font-size:13px;font-weight:700}
+.recent-head a{font-size:12px;font-weight:700;color:var(--indigo);text-decoration:none}
+.tx-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);gap:12px}
+.tx-row:last-child{border-bottom:none}
+.tx-left{display:flex;align-items:center;gap:12px}
+.tx-icon{width:32px;height:32px;background:var(--indigo-lt);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--indigo)}
+.tx-name{font-size:13px;font-weight:600}
+.tx-meta{font-size:11px;color:var(--ink-lt);margin-top:2px}
+.tx-right{text-align:right}
+.tx-amount{font-size:14px;font-weight:800;color:var(--green)}
+.tx-amount.fail{color:var(--red)}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-top:4px}
+.pill-green{background:var(--green-lt);color:var(--green)}
+.pill-amber{background:var(--amber-lt);color:var(--amber)}
+.pill-red{background:var(--red-lt);color:var(--red)}
+
+/* ── QRIS PANEL ── */
+.qris-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.qris-form{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:16px}
+.qris-form h3{font-size:14px;font-weight:700}
+.amount-input{display:flex;align-items:center;border:2px solid var(--ink);border-radius:8px;background:var(--white)}
+.amount-input .px{padding:0 14px;font-size:14px;font-weight:700;color:var(--ink-mid);border-right:1px solid var(--border);align-self:stretch;display:flex;align-items:center}
+.amount-input input{flex:1;border:none;outline:none;background:transparent;padding:14px 16px;font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-0.02em;font-family:inherit}
+.quick-amounts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.quick-amounts button{padding:9px 6px;font-size:11px;font-weight:700;background:var(--white);color:var(--ink-mid);border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit}
+.quick-amounts button.is-active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.summary{background:var(--cream-dk);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.summary-row{display:flex;justify-content:space-between;font-size:13px}
+.summary-row .l{color:var(--ink-mid)}
+.summary-row .v{font-weight:700;color:var(--ink)}
+.summary-row.net{padding-top:8px;border-top:1px solid var(--border)}
+.summary-row.net .v{color:var(--green)}
+.qris-card{background:var(--ink);color:#fff;border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:16px;align-items:stretch}
+.qris-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.qris-card-top .label{font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.1em}
+.qris-card-top .biz{font-size:14px;font-weight:800;margin-top:2px}
+.qris-card-top .mid{font-size:11px;color:#666;font-family:'DM Mono',monospace;margin-top:2px}
+.timer{display:flex;flex-direction:column;align-items:center;gap:4px}
+.timer .num{font-size:13px;font-weight:800;color:#4ade80;font-family:'DM Mono',monospace}
+.timer .l{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.06em;font-weight:700}
+.qris-amount{text-align:center}
+.qris-amount .l{font-size:9px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.1em}
+.qris-amount .v{font-size:28px;font-weight:800;letter-spacing:-0.03em;margin-top:4px;line-height:1}
+.qr-square{background:#fff;width:200px;height:200px;margin:0 auto;padding:14px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.qris-foot{background:var(--indigo);color:#fff;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;border-radius:6px;margin:0 -8px -8px}
+.qris-foot .l{font-size:10px;font-weight:700;letter-spacing:0.05em}
+.qris-foot .r{font-size:10px;color:rgba(255,255,255,0.55);font-family:'DM Mono',monospace}
+
+/* ── HISTORY PANEL ── */
+.hist-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px}
+.hist-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.hist-search{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:7px;background:var(--white);min-width:220px}
+.hist-search input{flex:1;border:none;outline:none;background:transparent;padding:8px 12px;font-size:13px;font-family:inherit}
+.hist-search svg{margin-left:11px;flex-shrink:0;color:var(--ink-lt)}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{padding:6px 13px;font-size:11px;font-weight:700;background:var(--white);color:var(--ink-mid);border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit}
+.chip.is-active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hist-table{width:100%;border-collapse:collapse;font-size:13px}
+.hist-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--ink-lt);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border)}
+.hist-table td{padding:11px 10px;border-bottom:1px solid var(--border)}
+.hist-table tr:last-child td{border-bottom:none}
+.hist-table .right{text-align:right}
+.hist-day-divider td{background:var(--cream-dk);padding:5px 10px;font-size:9px;font-weight:700;color:var(--ink-lt);text-transform:uppercase;letter-spacing:0.08em;border-bottom:none}
+
+/* ── WITHDRAWAL PANEL ── */
+.wd-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.wd-balance{background:var(--ink);color:#fff;padding:20px 24px;border-radius:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.wd-balance .l{font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:0.1em}
+.wd-balance .v-big{font-size:24px;font-weight:800;letter-spacing:-0.025em;margin-top:6px}
+.wd-balance .v{font-size:14px;font-weight:700;color:#aaa;margin-top:6px}
+.wd-balance .hint{font-size:10px;color:#555;margin-top:2px}
+.wd-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.wd-card h3{font-size:13px;font-weight:700;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.07em}
+.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.method{padding:14px 12px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;background:var(--white);border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.13s;font-family:inherit;text-align:left}
+.method.is-active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.method-icon{color:var(--ink)}
+.method.is-active .method-icon{color:#fff}
+.method-name{font-size:13px;font-weight:700}
+.method-sub{font-size:11px;color:var(--ink-lt);line-height:1.4}
+.method.is-active .method-sub{color:#aaa}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:700;color:var(--ink-mid);text-transform:uppercase;letter-spacing:0.07em}
+.field-input{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:7px;background:var(--white)}
+.field-input .px{padding:0 13px;font-size:13px;font-weight:600;color:var(--ink-mid);border-right:1px solid var(--border);align-self:stretch;display:flex;align-items:center}
+.field-input input{flex:1;border:none;outline:none;background:transparent;padding:11px 13px;font-size:14px;color:var(--ink);font-family:inherit;font-weight:600}
+.dest-chips{display:flex;gap:5px;flex-wrap:wrap}
+.dest-chip{padding:7px 12px;font-size:11px;font-weight:700;background:var(--white);color:var(--ink-mid);border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-family:inherit}
+.dest-chip.is-active{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ── BOTTOM CTA ── */
+.bottom-cta{background:var(--ink);color:#fff;padding:48px 0;border-radius:0}
+.bottom-cta-inner{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;max-width:1120px;margin:0 auto;padding:0 24px}
+.bottom-cta h2{font-size:clamp(22px,2.6vw,32px);font-weight:800;letter-spacing:-0.03em;line-height:1.2}
+.bottom-cta p{font-size:13px;color:#888;margin-top:6px}
+.bottom-cta .actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ── FOOTER (matches landing) ── */
+footer{background:#0e0c0a;padding:48px 0 0;color:#888}
+.footer-grid{display:grid;grid-template-columns:280px 1fr 1fr 1fr;gap:48px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.footer-brand p{font-size:13px;color:#666;line-height:1.65;margin-top:12px;max-width:220px}
+.footer-col h4{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:14px}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.footer-col ul li a{font-size:13px;color:#666;text-decoration:none;transition:color 0.15s;font-weight:500}
+.footer-col ul li a:hover{color:#ccc}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;padding:18px 0;flex-wrap:wrap;gap:12px}
+.footer-bottom p{font-size:12px;color:#444}
+.footer-legal{display:flex;gap:20px}
+.footer-legal a{font-size:12px;color:#444;text-decoration:none}
+.footer-legal a:hover{color:#888}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .nav-links{display:none}
+  .nav-cta{gap:6px}
+  .dash-grid{grid-template-columns:1fr}
+  .qris-grid{grid-template-columns:1fr}
+  .wd-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:1fr 1fr 1fr}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+}
+@media(max-width:600px){
+  .demo-header{padding:32px 0 16px}
+  .stats-row{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .bottom-cta-inner{flex-direction:column;align-items:flex-start}
+  .qr-square{width:170px;height:170px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo">
+      <svg width="26" height="26" viewBox="0 0 80 80" fill="none">
+        <rect x="8" y="8" width="56" height="56" rx="10" transform="rotate(8 40 40)" fill="#141210"/>
+        <text x="14" y="58" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="white" font-style="italic">e</text>
+        <path d="M26 62 Q38 74 54 66 Q64 60 58 50" stroke="#2d22c8" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M33 68 Q44 78 58 70" stroke="#2d22c8" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.55"/>
+      </svg>
+      <span>Esaku</span>
+    </a>
+    <div class="nav-links">
+      <a href="/#fitur">Fitur</a>
+      <a href="/#harga">Harga</a>
+      <a href="/#cara-kerja">Cara Kerja</a>
+      <a href="/#faq">FAQ</a>
+      <a href="/demo" class="is-active">Coba Demo</a>
+    </div>
+    <div class="nav-cta">
+      <a href="/sign-in" class="btn btn-outline btn-sm">Masuk</a>
+      <a href="/sign-up" class="btn btn-dark btn-sm">Daftar Gratis</a>
+    </div>
+  </div>
+</nav>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner">
+  <strong>Demo Mode</strong> · Anda sedang melihat data contoh — klik tab apa saja untuk menjelajah. <a href="/sign-up">Daftar gratis</a> untuk akun yang sebenarnya.
+</div>
+
+<!-- DEMO HEADER -->
+<section class="demo-header">
+  <div class="container">
+    <div class="demo-eyebrow">Demo Aplikasi · Tanpa Daftar</div>
+    <h1 class="demo-title">Coba dasbor Esaku, langsung dari sini.</h1>
+    <p class="demo-sub">Empat layar utama yang akan Anda gunakan sehari-hari — Dasbor, Buat QRIS, Riwayat, dan Pencairan. Semua data di halaman ini adalah contoh dan tidak terhubung dengan akun nyata.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab is-active" data-tab="dash" role="tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dasbor
+      </button>
+      <button class="tab" data-tab="qris" role="tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/></svg>
+        Buat QRIS
+      </button>
+      <button class="tab" data-tab="hist" role="tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        Riwayat
+      </button>
+      <button class="tab" data-tab="wd" role="tab">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Cairkan Dana
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── DASHBOARD PANEL ── -->
+<div class="container">
+  <section class="panel is-active" data-panel="dash">
+    <div class="dash-grid">
+      <!-- Balance + actions -->
+      <div class="balance-card">
+        <div>
+          <div class="label">Saldo Tersedia</div>
+          <div class="amount" id="dashBalance">Rp 4.287.500</div>
+          <div class="meta">Diperbarui 5 menit lalu · Toko Budi Jaya</div>
+        </div>
+        <div class="balance-actions">
+          <a href="#" onclick="switchTab('wd');return false" class="btn btn-indigo btn-sm">Cairkan Dana</a>
+          <div class="qris-status"><div class="dot"></div><span>QRIS Aktif</span></div>
+        </div>
+      </div>
+
+      <!-- Range + chart -->
+      <div class="range-card">
+        <div class="range-head">
+          <h3>Pendapatan</h3>
+          <div class="range-toggle" id="rangeToggle">
+            <button class="is-active" data-range="7">7 Hari</button>
+            <button data-range="30">30 Hari</button>
+            <button data-range="90">90 Hari</button>
+          </div>
+        </div>
+        <div class="bars" id="bars"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-lt);font-weight:600">
+          <span id="rangeStart">Sen</span><span id="rangeEnd">Min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-tile"><div class="l">Omset</div><div class="v" id="statOmset">Rp 17.750.000</div></div>
+      <div class="stat-tile"><div class="l">Transaksi</div><div class="v" id="statCount">143</div></div>
+      <div class="stat-tile"><div class="l">MDR Pembeli</div><div class="v" id="statMdr">Rp 124.250</div></div>
+    </div>
+
+    <!-- Recent -->
+    <div class="recent-card">
+      <div class="recent-head">
+        <h3>Transaksi Terkini</h3>
+        <a href="#" onclick="switchTab('hist');return false">Lihat Semua →</a>
+      </div>
+      <div class="tx-row">
+        <div class="tx-left">
+          <div class="tx-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+          <div><div class="tx-name">Warung Makan Sari</div><div class="tx-meta">09:14 · GoPay · QRIS</div></div>
+        </div>
+        <div class="tx-right"><div class="tx-amount">+Rp 45.000</div><span class="pill pill-green">Sukses</span></div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-left">
+          <div class="tx-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+          <div><div class="tx-name">Toko Baju Murah</div><div class="tx-meta">08:52 · OVO · QRIS</div></div>
+        </div>
+        <div class="tx-right"><div class="tx-amount">+Rp 215.000</div><span class="pill pill-green">Sukses</span></div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-left">
+          <div class="tx-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+          <div><div class="tx-name">Bakso Pak Joko</div><div class="tx-meta">08:30 · DANA · QRIS</div></div>
+        </div>
+        <div class="tx-right"><div class="tx-amount">+Rp 32.000</div><span class="pill pill-green">Sukses</span></div>
+      </div>
+      <div class="tx-row">
+        <div class="tx-left">
+          <div class="tx-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
+          <div><div class="tx-name">Apotek Sehat</div><div class="tx-meta">07:11 · BCA Mobile · QRIS</div></div>
+        </div>
+        <div class="tx-right"><div class="tx-amount">+Rp 125.000</div><span class="pill pill-amber">Pending</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── QRIS PANEL ── -->
+  <section class="panel" data-panel="qris">
+    <div class="qris-grid">
+      <div class="qris-form">
+        <h3>Buat QRIS Pembayaran</h3>
+        <div class="field">
+          <label>Nominal</label>
+          <div class="amount-input">
+            <div class="px">Rp</div>
+            <input id="qAmt" type="text" inputmode="numeric" value="50.000" oninput="qOnInput(this)"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Nominal Cepat</label>
+          <div class="quick-amounts" id="quickAmounts">
+            <button data-amt="10000">10K</button>
+            <button data-amt="25000">25K</button>
+            <button data-amt="50000" class="is-active">50K</button>
+            <button data-amt="75000">75K</button>
+            <button data-amt="100000">100K</button>
+            <button data-amt="250000">250K</button>
+          </div>
+        </div>
+        <div class="summary">
+          <div class="summary-row"><span class="l">Pembeli Bayar</span><span class="v" id="qBuyer">Rp 50.350</span></div>
+          <div class="summary-row"><span class="l">MDR 0,7%</span><span class="v" id="qFee">Rp 350</span></div>
+          <div class="summary-row net"><span class="l">Anda Terima</span><span class="v" id="qNet">Rp 50.000</span></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-dark" style="flex:1">Buat QRIS Pembayaran →</button>
+          <button class="btn btn-outline">Reset</button>
+        </div>
+      </div>
+
+      <div class="qris-card">
+        <div class="qris-card-top">
+          <div>
+            <div class="label">Merchant</div>
+            <div class="biz">Toko Budi Jaya</div>
+            <div class="mid">ESK-2025-00847</div>
+          </div>
+          <div class="timer"><div class="num" id="qTimer">14:32</div><div class="l">Tersisa</div></div>
+        </div>
+        <div class="qris-amount">
+          <div class="l">Nominal Pembayaran</div>
+          <div class="v" id="qShown">Rp 50.000</div>
+        </div>
+        <div class="qr-square">
+          <svg width="170" height="170" viewBox="0 0 104 104">
+            <rect x="2" y="2" width="28" height="28" rx="2" fill="none" stroke="#141210" stroke-width="3.5"/>
+            <rect x="7" y="7" width="18" height="18" rx="1" fill="#141210"/>
+            <rect x="74" y="2" width="28" height="28" rx="2" fill="none" stroke="#141210" stroke-width="3.5"/>
+            <rect x="79" y="7" width="18" height="18" rx="1" fill="#141210"/>
+            <rect x="2" y="74" width="28" height="28" rx="2" fill="none" stroke="#141210" stroke-width="3.5"/>
+            <rect x="7" y="79" width="18" height="18" rx="1" fill="#141210"/>
+            <g fill="#141210">
+              <rect x="36" y="36" width="5" height="5"/><rect x="42" y="36" width="5" height="5"/><rect x="48" y="36" width="5" height="5"/><rect x="54" y="36" width="5" height="5"/><rect x="60" y="36" width="5" height="5"/><rect x="66" y="36" width="5" height="5"/>
+              <rect x="36" y="42" width="5" height="5"/><rect x="54" y="42" width="5" height="5"/><rect x="66" y="42" width="5" height="5"/>
+              <rect x="36" y="48" width="5" height="5"/><rect x="42" y="48" width="5" height="5"/><rect x="60" y="48" width="5" height="5"/><rect x="66" y="48" width="5" height="5"/>
+              <rect x="36" y="54" width="5" height="5"/><rect x="42" y="54" width="5" height="5"/><rect x="48" y="54" width="5" height="5"/><rect x="66" y="54" width="5" height="5"/>
+              <rect x="36" y="60" width="5" height="5"/><rect x="54" y="60" width="5" height="5"/><rect x="60" y="60" width="5" height="5"/>
+              <rect x="36" y="66" width="5" height="5"/><rect x="42" y="66" width="5" height="5"/><rect x="48" y="66" width="5" height="5"/><rect x="54" y="66" width="5" height="5"/><rect x="60" y="66" width="5" height="5"/><rect x="66" y="66" width="5" height="5"/>
+              <rect x="74" y="36" width="5" height="5"/><rect x="80" y="36" width="5" height="5"/><rect x="86" y="36" width="5" height="5"/>
+              <rect x="74" y="48" width="5" height="5"/><rect x="86" y="48" width="5" height="5"/>
+              <rect x="74" y="54" width="5" height="5"/><rect x="80" y="54" width="5" height="5"/>
+              <rect x="74" y="60" width="5" height="5"/><rect x="80" y="60" width="5" height="5"/><rect x="86" y="60" width="5" height="5"/>
+              <rect x="36" y="74" width="5" height="5"/><rect x="42" y="74" width="5" height="5"/><rect x="54" y="74" width="5" height="5"/><rect x="60" y="74" width="5" height="5"/><rect x="66" y="74" width="5" height="5"/>
+              <rect x="36" y="80" width="5" height="5"/><rect x="48" y="80" width="5" height="5"/><rect x="60" y="80" width="5" height="5"/><rect x="66" y="80" width="5" height="5"/>
+              <rect x="36" y="86" width="5" height="5"/><rect x="42" y="86" width="5" height="5"/><rect x="48" y="86" width="5" height="5"/><rect x="54" y="86" width="5" height="5"/><rect x="66" y="86" width="5" height="5"/>
+            </g>
+            <rect x="44" y="44" width="16" height="16" rx="2" fill="#fff"/>
+            <rect x="46" y="46" width="12" height="12" rx="1" fill="#2d22c8"/>
+          </svg>
+        </div>
+        <div style="text-align:center"><div style="font-size:10px;color:#666">Scan dengan GoPay · OVO · DANA · ShopeePay · Bank</div></div>
+        <div class="qris-foot">
+          <span class="l">QRIS · MDR 0,7% DITANGGUNG PEMBELI</span>
+          <span class="r">esaku.id</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HISTORY PANEL ── -->
+  <section class="panel" data-panel="hist">
+    <div class="hist-card">
+      <div class="hist-head">
+        <h3 style="font-size:14px;font-weight:700">Riwayat Transaksi</h3>
+        <div class="hist-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input id="histQ" placeholder="Cari nama pelanggan..." oninput="renderHistory()"/>
+        </div>
+      </div>
+      <div class="filter-chips" id="filterChips">
+        <button class="chip is-active" data-filter="all">Semua</button>
+        <button class="chip" data-filter="success">Berhasil</button>
+        <button class="chip" data-filter="pending">Pending</button>
+        <button class="chip" data-filter="failed">Gagal</button>
+      </div>
+      <table class="hist-table">
+        <thead>
+          <tr><th>Pelanggan</th><th>Metode</th><th>Status</th><th class="right">Nominal</th></tr>
+        </thead>
+        <tbody id="histRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ── WITHDRAWAL PANEL ── -->
+  <section class="panel" data-panel="wd">
+    <div class="wd-balance">
+      <div>
+        <div class="l">Saldo Tersedia</div>
+        <div class="v-big">Rp 4.287.500</div>
+      </div>
+      <div style="text-align:right">
+        <div class="l">Limit / Minggu</div>
+        <div class="v">Rp 5.000.000</div>
+        <div class="hint">Min. Rp 50.000 · Maks. Rp 5 jt</div>
+      </div>
+    </div>
+
+    <div class="wd-grid">
+      <!-- Method + destination -->
+      <div class="wd-card">
+        <h3>Metode Pencairan</h3>
+        <div class="method-grid" id="methodGrid">
+          <button class="method is-active" data-method="ewallet">
+            <span class="method-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h2"/></svg></span>
+            <span class="method-name">E-Wallet</span>
+            <span class="method-sub">Biaya Rp 2.500 · GoPay · OVO · DANA</span>
+          </button>
+          <button class="method" data-method="bank">
+            <span class="method-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"/></svg></span>
+            <span class="method-name">Transfer Bank</span>
+            <span class="method-sub">Biaya Rp 6.500 · BCA · Mandiri · BNI</span>
+          </button>
+        </div>
+
+        <div class="field">
+          <label id="destLabel">Pilih E-Wallet</label>
+          <div class="dest-chips" id="destChips">
+            <button class="dest-chip is-active">GoPay</button>
+            <button class="dest-chip">OVO</button>
+            <button class="dest-chip">DANA</button>
+            <button class="dest-chip">ShopeePay</button>
+            <button class="dest-chip">LinkAja</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Nomor Tujuan</label>
+          <div class="field-input">
+            <input type="text" placeholder="08xx-xxxx-xxxx" value="0812-3456-7890"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amount + summary -->
+      <div class="wd-card">
+        <h3>Nominal &amp; Konfirmasi</h3>
+        <div class="field">
+          <label>Nominal Pencairan</label>
+          <div class="field-input">
+            <span class="px">Rp</span>
+            <input id="wdAmt" type="text" inputmode="numeric" value="500.000" oninput="wdOnInput(this)"/>
+          </div>
+        </div>
+        <div class="dest-chips">
+          <button class="dest-chip" onclick="setWd(100000)">100K</button>
+          <button class="dest-chip" onclick="setWd(250000)">250K</button>
+          <button class="dest-chip is-active" onclick="setWd(500000)">500K</button>
+          <button class="dest-chip" onclick="setWd(1000000)">1 Jt</button>
+        </div>
+        <div class="summary">
+          <div class="summary-row"><span class="l">Nominal</span><span class="v" id="wdNominal">Rp 500.000</span></div>
+          <div class="summary-row"><span class="l">Biaya Transfer</span><span class="v" id="wdFee">Rp 2.500</span></div>
+          <div class="summary-row"><span class="l">Total Dipotong</span><span class="v" id="wdTotal" style="color:var(--red)">Rp 502.500</span></div>
+          <div class="summary-row"><span class="l">Estimasi</span><span class="v">1×24 jam kerja</span></div>
+        </div>
+        <button class="btn btn-dark" style="width:100%">Proses Pencairan</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- BOTTOM CTA -->
+<div class="bottom-cta">
+  <div class="bottom-cta-inner">
+    <div>
+      <h2>Suka demo-nya? Aktifkan akun nyata.</h2>
+      <p>Tanpa KYC. Tanpa biaya bulanan. MDR 0,7% ditanggung pembeli.</p>
+    </div>
+    <div class="actions">
+      <a href="/sign-up" class="btn btn-indigo btn-lg">Daftar Gratis →</a>
+      <a href="/" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,0.2)">← Kembali ke Beranda</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="24" height="24" viewBox="0 0 80 80" fill="none">
+            <rect x="8" y="8" width="56" height="56" rx="10" transform="rotate(8 40 40)" fill="white" fill-opacity="0.9"/>
+            <text x="14" y="58" font-family="Georgia,serif" font-size="52" font-weight="bold" fill="#141210" font-style="italic">e</text>
+            <path d="M26 62 Q38 74 54 66 Q64 60 58 50" stroke="#7b8fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+          </svg>
+          <span style="font-weight:800;font-size:18px;letter-spacing:-0.025em;color:white">Esaku</span>
+        </div>
+        <p>Platform QRIS merchant perorangan. Tanpa KYC, tanpa ribet, langsung aktif.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Produk</h4>
+        <ul>
+          <li><a href="/#fitur">Fitur</a></li>
+          <li><a href="/#harga">Harga & MDR</a></li>
+          <li><a href="/#cara-kerja">Cara Kerja</a></li>
+          <li><a href="/">← Kembali ke beranda</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Dukungan</h4>
+        <ul>
+          <li><a href="/#faq">FAQ</a></li>
+          <li><a href="#">Panduan Pengguna</a></li>
+          <li><a href="#">Hubungi Kami</a></li>
+          <li><a href="#">Status Layanan</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="#">Syarat & Ketentuan</a></li>
+          <li><a href="#">Kebijakan Privasi</a></li>
+          <li><a href="#">Kebijakan MDR</a></li>
+          <li><a href="#">Kebijakan Pencairan</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 Esaku. Hak cipta dilindungi. Platform QRIS untuk perorangan Indonesia.</p>
+      <div class="footer-legal">
+        <a href="#">Privasi</a><a href="#">Ketentuan</a><a href="#">Cookie</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── helpers ── */
+function fmtIDR(n){return 'Rp ' + Math.round(n).toLocaleString('id-ID')}
+function unFmt(s){return parseInt(String(s).replace(/\D/g,''),10) || 0}
+
+/* ── tabs ── */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('is-active', b.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('is-active', p.dataset.panel===name));
+  window.scrollTo({top:document.querySelector('.demo-header').offsetTop, behavior:'smooth'});
+}
+document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>switchTab(btn.dataset.tab)));
+
+/* ── dashboard chart ── */
+const CHART = {
+  7:  { data:[1.85,2.30,1.70,3.10,2.80,3.90,2.10], peak:5, labels:['Sen','Sel','Rab','Kam','Jum','Sab','Min'], total:17750000, count:143, mdr:124250 },
+  30: { data:[8.5,11.2,9.8,14.3,10.1,12.6,8.9,15.2,13.4,11.8,16.5,14.2,12.1,17.8,9.6], peak:13, labels:['M1','M5','M10','M15'], total:74300000, count:612, mdr:520100 },
+  90: { data:[28,32,25,38,35,41,30,44,39,52,46,58], peak:11, labels:['Jan','Feb','Mar','Apr'], total:228000000, count:1840, mdr:1596000 },
+};
+function renderChart(range){
+  const cfg = CHART[range];
+  const max = Math.max(...cfg.data);
+  const host = document.getElementById('bars');
+  host.innerHTML = '';
+  cfg.data.forEach((v,i)=>{
+    const b = document.createElement('div');
+    b.className = 'bar' + (i===cfg.peak?' peak':'');
+    b.style.height = Math.max(6, (v/max)*120) + 'px';
+    b.title = fmtIDR(v*1000000);
+    host.appendChild(b);
+  });
+  document.getElementById('rangeStart').textContent = cfg.labels[0];
+  document.getElementById('rangeEnd').textContent = cfg.labels[cfg.labels.length-1];
+  document.getElementById('statOmset').textContent = fmtIDR(cfg.total);
+  document.getElementById('statCount').textContent = cfg.count.toLocaleString('id-ID');
+  document.getElementById('statMdr').textContent = fmtIDR(cfg.mdr);
+}
+document.querySelectorAll('#rangeToggle button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#rangeToggle button').forEach(b=>b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    renderChart(parseInt(btn.dataset.range,10));
+  });
+});
+renderChart(7);
+
+/* ── QRIS form ── */
+function qOnInput(el){
+  const n = unFmt(el.value);
+  el.value = n ? n.toLocaleString('id-ID') : '';
+  qUpdate(n);
+  document.querySelectorAll('#quickAmounts button').forEach(b=>b.classList.toggle('is-active', parseInt(b.dataset.amt,10)===n));
+}
+function qUpdate(n){
+  const fee = Math.round(n * 0.007);
+  document.getElementById('qShown').textContent = fmtIDR(n);
+  document.getElementById('qBuyer').textContent = fmtIDR(n + fee);
+  document.getElementById('qFee').textContent = fmtIDR(fee);
+  document.getElementById('qNet').textContent = fmtIDR(n);
+}
+document.querySelectorAll('#quickAmounts button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const n = parseInt(btn.dataset.amt,10);
+    document.getElementById('qAmt').value = n.toLocaleString('id-ID');
+    qOnInput(document.getElementById('qAmt'));
+  });
+});
+qUpdate(50000);
+
+/* ── QRIS countdown (just visual) ── */
+let qSecs = 14 * 60 + 32;
+setInterval(()=>{
+  if(qSecs<=0) return;
+  qSecs--;
+  const m = Math.floor(qSecs/60), s = qSecs%60;
+  document.getElementById('qTimer').textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}, 1000);
+
+/* ── HISTORY ── */
+const TX_DATA = [
+  { day:'Hari ini', name:'Warung Makan Sari', method:'GoPay', amount:45000, status:'success', time:'09:14' },
+  { day:'Hari ini', name:'Toko Baju Murah', method:'OVO', amount:215000, status:'success', time:'08:52' },
+  { day:'Hari ini', name:'Bakso Pak Joko', method:'DANA', amount:32000, status:'success', time:'08:30' },
+  { day:'Hari ini', name:'Apotek Sehat', method:'BCA', amount:125000, status:'pending', time:'07:11' },
+  { day:'Kemarin', name:'Kopi Kenangan', method:'ShopeePay', amount:78000, status:'success', time:'16:44' },
+  { day:'Kemarin', name:'Nasi Padang Sederhana', method:'Mandiri', amount:55000, status:'success', time:'13:22' },
+  { day:'Kemarin', name:'Toko Elektronik Jaya', method:'GoPay', amount:850000, status:'success', time:'11:05' },
+  { day:'Kemarin', name:'Salon Cantik', method:'OVO', amount:165000, status:'failed', time:'10:33' },
+  { day:'3 Mei', name:'Minimarket 24 Jam', method:'BCA', amount:89000, status:'success', time:'21:10' },
+  { day:'3 Mei', name:'Percetakan Maju', method:'DANA', amount:320000, status:'success', time:'14:00' },
+];
+let histFilter = 'all';
+function renderHistory(){
+  const q = (document.getElementById('histQ').value || '').toLowerCase().trim();
+  const rows = TX_DATA.filter(tx=>{
+    if(histFilter!=='all' && tx.status!==histFilter) return false;
+    if(q && !tx.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const host = document.getElementById('histRows');
+  host.innerHTML = '';
+  if(!rows.length){
+    host.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--ink-lt);padding:24px">Tidak ada transaksi yang cocok</td></tr>';
+    return;
+  }
+  let prevDay = null;
+  for(const tx of rows){
+    if(tx.day !== prevDay){
+      const tr = document.createElement('tr');
+      tr.className = 'hist-day-divider';
+      tr.innerHTML = '<td colspan="4">'+tx.day+'</td>';
+      host.appendChild(tr);
+      prevDay = tx.day;
+    }
+    const tr = document.createElement('tr');
+    const pillClass = tx.status==='success'?'pill-green':tx.status==='pending'?'pill-amber':'pill-red';
+    const pillLabel = tx.status==='success'?'Sukses':tx.status==='pending'?'Pending':'Gagal';
+    const sign = tx.status==='failed'?'':'+';
+    tr.innerHTML =
+      '<td><strong>'+tx.name+'</strong><div style="font-size:10px;color:var(--ink-lt);margin-top:2px">'+tx.time+'</div></td>'+
+      '<td>QRIS · '+tx.method+'</td>'+
+      '<td><span class="pill '+pillClass+'">'+pillLabel+'</span></td>'+
+      '<td class="right" style="font-weight:700;color:'+(tx.status==='failed'?'var(--red)':'var(--green)')+'">'+sign+fmtIDR(tx.amount)+'</td>';
+    host.appendChild(tr);
+  }
+}
+document.querySelectorAll('#filterChips .chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('#filterChips .chip').forEach(b=>b.classList.remove('is-active'));
+    c.classList.add('is-active');
+    histFilter = c.dataset.filter;
+    renderHistory();
+  });
+});
+renderHistory();
+
+/* ── WITHDRAWAL ── */
+const DEST = {
+  ewallet: { label:'Pilih E-Wallet', items:['GoPay','OVO','DANA','ShopeePay','LinkAja'], fee:2500 },
+  bank:    { label:'Pilih Bank',     items:['BCA','Mandiri','BNI','BRI','BSI','CIMB'],   fee:6500 },
+};
+let wdMethod = 'ewallet';
+function renderDest(){
+  const cfg = DEST[wdMethod];
+  document.getElementById('destLabel').textContent = cfg.label;
+  const host = document.getElementById('destChips');
+  host.innerHTML = cfg.items.map((d,i)=>'<button class="dest-chip'+(i===0?' is-active':'')+'">'+d+'</button>').join('');
+  host.querySelectorAll('.dest-chip').forEach(b=>b.addEventListener('click',()=>{
+    host.querySelectorAll('.dest-chip').forEach(x=>x.classList.remove('is-active'));
+    b.classList.add('is-active');
+  }));
+  wdRecalc();
+}
+document.querySelectorAll('#methodGrid .method').forEach(m=>{
+  m.addEventListener('click',()=>{
+    document.querySelectorAll('#methodGrid .method').forEach(x=>x.classList.remove('is-active'));
+    m.classList.add('is-active');
+    wdMethod = m.dataset.method;
+    renderDest();
+  });
+});
+function setWd(n){
+  document.getElementById('wdAmt').value = n.toLocaleString('id-ID');
+  wdRecalc();
+}
+function wdOnInput(el){
+  const n = unFmt(el.value);
+  el.value = n ? n.toLocaleString('id-ID') : '';
+  wdRecalc();
+}
+function wdRecalc(){
+  const n = unFmt(document.getElementById('wdAmt').value);
+  const fee = DEST[wdMethod].fee;
+  document.getElementById('wdNominal').textContent = fmtIDR(n);
+  document.getElementById('wdFee').textContent = fmtIDR(fee);
+  document.getElementById('wdTotal').textContent = fmtIDR(n + fee);
+}
+renderDest();
+wdRecalc();
+</script>
+</body>
+</html>

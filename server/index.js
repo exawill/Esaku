@@ -36,9 +36,14 @@ app.use(
 );
 
 // Redirect any *.html URL to the clean version (before static so files aren't served directly)
+const HTML_REDIRECT_OVERRIDES = {
+  index: "/",
+  auth: "/sign-in"
+};
 app.get(/^\/(.*)\.html$/, (req, res) => {
-  const cleanPath = "/" + req.params[0];
-  return res.redirect(301, cleanPath === "/index" ? "/" : cleanPath);
+  const stem = req.params[0];
+  const target = HTML_REDIRECT_OVERRIDES[stem] || "/" + stem;
+  return res.redirect(301, target);
 });
 
 // Static assets (no extension fall-through for HTML)

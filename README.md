@@ -42,6 +42,7 @@ scripts/init-db.js One-shot DB initializer
 Clean URLs only:
 
 - `/` landing
+- `/demo` interactive desktop demo (no sign-up required)
 - `/sign-in` · `/sign-up`
 - `/dashboard`
 - `/generate-qris`
@@ -50,7 +51,9 @@ Clean URLs only:
 - `/profile`
 - `/admin` (admin only)
 
-Any `*.html` URL is permanently redirected to its clean form.
+Any `*.html` URL is permanently redirected to its clean form
+(`/index.html` → `/`, `/auth.html` → `/sign-in`, everything else
+strips the extension).
 
 ## Setup
 

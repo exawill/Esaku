@@ -1,261 +1,284 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Esaku — Admin CMS</title>
-    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <script src="/js/theme.js"></script>
-  </head>
-  <body class="font-sans">
-    <div id="app-root"></div>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — CMS Admin</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div id="app-root"></div>
 
-    <template id="page-template">
-      <div class="space-y-6">
-        <!-- QRIS Provider config -->
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="admin.qris_provider">QRIS Provider API</h2>
-          <p class="text-sm text-ink-600 dark:text-cream-200 mt-1">Pick the upstream API used to generate QRIS codes for end users.</p>
-          <form id="provider-form" class="mt-6 grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="label">Provider key</label>
-              <select name="provider" class="input">
-                <option value="internal">internal (built-in)</option>
-                <option value="midtrans">midtrans</option>
-                <option value="xendit">xendit</option>
-                <option value="ipaymu">ipaymu</option>
-                <option value="custom">custom</option>
-              </select>
-            </div>
-            <div>
-              <label class="label">Merchant ID</label>
-              <input type="text" name="merchant_id" class="input" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="label">API base URL</label>
-              <input type="url" name="api_base_url" class="input" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="label">API key / secret</label>
-              <input type="text" name="api_key" class="input" />
-            </div>
-            <div>
-              <label class="label">QRIS expiry (minutes)</label>
-              <input type="number" name="expiry_minutes" min="1" max="1440" class="input" value="15" />
-            </div>
-            <div class="sm:col-span-2 flex justify-end">
-              <button class="btn-primary" data-i18n="common.save">Save</button>
-            </div>
-          </form>
+<main class="container">
+  <div class="page-head">
+    <div class="page-eyebrow">CMS Admin</div>
+    <h1 class="page-title">Dasbor Admin</h1>
+    <p class="page-sub">Ringkasan platform, antrian pencairan, dan pengaturan operasional Esaku.</p>
+  </div>
+
+  <!-- Stats banner -->
+  <div class="grid-2 mt-4">
+    <div class="dark-card">
+      <div class="row-between" style="align-items:flex-start">
+        <div>
+          <div class="label">Total Pengguna</div>
+          <div class="v" id="stat-users">—</div>
+          <div class="meta" id="stat-admins">— admin</div>
         </div>
-
-        <!-- Fees -->
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="admin.fees">Fees</h2>
-          <form id="fees-form" class="mt-6 grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="label">QRIS flat fee (%)</label>
-              <input type="number" name="qris_flat_percent" step="0.01" class="input" />
-            </div>
-            <div>
-              <label class="label">Withdrawal — minimum (IDR)</label>
-              <input type="number" name="withdrawal_min_idr" step="500" class="input" />
-            </div>
-            <div>
-              <label class="label">Withdrawal — bank fee (IDR)</label>
-              <input type="number" name="withdrawal_bank_fee_idr" step="500" class="input" />
-            </div>
-            <div>
-              <label class="label">Withdrawal — e-wallet fee (IDR)</label>
-              <input type="number" name="withdrawal_ewallet_fee_idr" step="500" class="input" />
-            </div>
-            <div class="sm:col-span-2 flex justify-end">
-              <button class="btn-primary" data-i18n="common.save">Save</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Branding -->
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="admin.branding">Branding</h2>
-          <form id="branding-form" class="mt-6 grid sm:grid-cols-2 gap-4">
-            <div>
-              <label class="label">Site name</label>
-              <input type="text" name="site_name" class="input" />
-            </div>
-            <div>
-              <label class="label">Logo URL</label>
-              <input type="url" name="logo_url" class="input" />
-            </div>
-            <div class="sm:col-span-2">
-              <label class="label">Banner URL</label>
-              <input type="url" name="banner_url" class="input" />
-            </div>
-            <div class="sm:col-span-2 flex justify-end">
-              <button class="btn-primary" data-i18n="common.save">Save</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- Withdrawals queue -->
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="admin.withdrawals">Withdrawals queue</h2>
-          <div class="mt-5 overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="text-left text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">
-                <tr>
-                  <th class="py-2">Date</th>
-                  <th class="py-2">User</th>
-                  <th class="py-2">Method</th>
-                  <th class="py-2">Destination</th>
-                  <th class="py-2">Amount</th>
-                  <th class="py-2">Fee</th>
-                  <th class="py-2">Status</th>
-                  <th class="py-2"></th>
-                </tr>
-              </thead>
-              <tbody id="wd-rows"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Users -->
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="admin.users">Users</h2>
-          <div class="mt-5 overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="text-left text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">
-                <tr>
-                  <th class="py-2">Email</th>
-                  <th class="py-2">Name</th>
-                  <th class="py-2">Role</th>
-                  <th class="py-2 text-right">Balance</th>
-                  <th class="py-2">Joined</th>
-                </tr>
-              </thead>
-              <tbody id="user-rows"></tbody>
-            </table>
-          </div>
+        <div style="text-align:right">
+          <div class="label">Total Saldo Pengguna</div>
+          <div style="font-size:18px;font-weight:700;color:#aaa;margin-top:6px" id="stat-balance">—</div>
         </div>
       </div>
-    </template>
+    </div>
+    <div class="card stack" style="gap:10px">
+      <div class="row-between">
+        <div>
+          <div style="font-weight:700;font-size:14px">Permintaan Pencairan</div>
+          <div class="text-mid" style="font-size:12px;margin-top:2px">Tertunda &amp; sedang diproses</div>
+        </div>
+        <a href="#wd-section" class="btn btn-outline btn-sm">Buka antrian →</a>
+      </div>
+      <div class="grid-2" style="gap:10px">
+        <div class="kpi"><div class="l">Tertunda</div><div class="v" id="stat-pending-count">—</div></div>
+        <div class="kpi"><div class="l">Nominal Tertunda</div><div class="v" id="stat-pending-amount">—</div></div>
+      </div>
+    </div>
+  </div>
 
-    <div id="page-content" class="hidden"></div>
+  <div class="kpi-grid mt-4">
+    <div class="kpi"><div class="l">QRIS Berhasil</div><div class="v" id="stat-qris-count">—</div></div>
+    <div class="kpi"><div class="l">Total Omset (kotor)</div><div class="v" id="stat-qris-gross">—</div></div>
+    <div class="kpi"><div class="l">MDR Terkumpul</div><div class="v" id="stat-qris-fee">—</div></div>
+  </div>
 
-    <script src="/js/i18n.js"></script>
-    <script src="/js/common.js"></script>
-    <script src="/js/shell.js"></script>
-    <script>
-      (async function () {
-        const tpl = document.getElementById("page-template").content.cloneNode(true);
-        document.getElementById("page-content").appendChild(tpl);
+  <!-- Withdrawal Requests (promoted) -->
+  <div class="card mt-6" id="wd-section">
+    <div class="row-between" style="margin-bottom:14px">
+      <div>
+        <div style="font-weight:700;font-size:15px">Permintaan Pencairan</div>
+        <div class="text-mid" style="font-size:12px;margin-top:2px">Lihat permintaan pencairan dari pengguna. Tandai selesai setelah dana ditransfer, atau gagalkan untuk mengembalikan saldo otomatis.</div>
+      </div>
+      <div class="row" style="gap:6px">
+        <div class="chip-row" id="wdFilter">
+          <button class="chip is-active" data-wf="pending">Tertunda</button>
+          <button class="chip" data-wf="all">Semua</button>
+          <button class="chip" data-wf="completed">Selesai</button>
+          <button class="chip" data-wf="failed">Gagal</button>
+        </div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Tanggal</th><th>Email</th><th>Metode</th><th>Tujuan</th><th class="right">Nominal</th><th class="right">Biaya</th><th>Status</th><th></th></tr></thead>
+        <tbody id="wd-rows"></tbody>
+      </table>
+    </div>
+  </div>
 
-        const user = await shell.mount({ requireAdmin: true, pageTitleKey: "side.cms" });
-        if (!user) return;
+  <!-- Provider QRIS -->
+  <div class="card mt-4">
+    <div class="row-between" style="margin-bottom:14px">
+      <div>
+        <div style="font-weight:700;font-size:15px">API Provider QRIS</div>
+        <div class="text-mid" style="font-size:12px;margin-top:2px">Pilih API yang dipakai untuk men-generate QRIS bagi pengguna.</div>
+      </div>
+    </div>
+    <form id="provider-form" class="grid-2" style="gap:14px">
+      <div class="field">
+        <label class="label">Provider</label>
+        <select name="provider" class="input">
+          <option value="internal">Internal (built-in)</option>
+          <option value="midtrans">Midtrans</option>
+          <option value="xendit">Xendit</option>
+          <option value="ipaymu">iPaymu</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="field"><label class="label">Merchant ID</label><input name="merchant_id" class="input"/></div>
+      <div class="field" style="grid-column:1/-1"><label class="label">API Base URL</label><input name="api_base_url" type="url" class="input"/></div>
+      <div class="field" style="grid-column:1/-1"><label class="label">API Key / Secret</label><input name="api_key" class="input"/></div>
+      <div class="field"><label class="label">Masa Berlaku QRIS (menit)</label><input name="expiry_minutes" type="number" min="1" max="1440" class="input"/></div>
+      <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
+    </form>
+  </div>
 
-        function fillForm(form, data) {
-          for (const [k, v] of Object.entries(data || {})) {
-            const el = form.querySelector(`[name="${k}"]`);
-            if (el) el.value = v ?? "";
-          }
-        }
-        function readForm(form) {
-          const out = {};
-          for (const el of form.querySelectorAll("[name]")) {
-            const v = el.value;
-            out[el.name] = el.type === "number" ? Number(v) : v;
-          }
-          return out;
-        }
+  <!-- Fees -->
+  <div class="card mt-4">
+    <div style="font-weight:700;font-size:15px;margin-bottom:14px">MDR &amp; Biaya Pencairan</div>
+    <form id="fees-form" class="grid-2" style="gap:14px">
+      <div class="field"><label class="label">MDR QRIS Flat (%)</label><input name="qris_flat_percent" type="number" step="0.01" class="input"/></div>
+      <div class="field"><label class="label">Pencairan Minimum (IDR)</label><input name="withdrawal_min_idr" type="number" step="500" class="input"/></div>
+      <div class="field"><label class="label">Biaya Bank (IDR)</label><input name="withdrawal_bank_fee_idr" type="number" step="500" class="input"/></div>
+      <div class="field"><label class="label">Biaya E-Wallet (IDR)</label><input name="withdrawal_ewallet_fee_idr" type="number" step="500" class="input"/></div>
+      <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
+    </form>
+  </div>
 
-        async function loadAll() {
-          const { settings } = await app.api("/api/admin/settings");
-          fillForm(document.getElementById("provider-form"), settings.qris_provider);
-          fillForm(document.getElementById("fees-form"), settings.fees);
-          fillForm(document.getElementById("branding-form"), settings.branding);
+  <!-- Branding -->
+  <div class="card mt-4">
+    <div style="font-weight:700;font-size:15px;margin-bottom:14px">Branding</div>
+    <form id="branding-form" class="grid-2" style="gap:14px">
+      <div class="field"><label class="label">Nama Situs</label><input name="site_name" class="input"/></div>
+      <div class="field"><label class="label">Logo URL</label><input name="logo_url" type="url" class="input"/></div>
+      <div class="field" style="grid-column:1/-1"><label class="label">Banner URL</label><input name="banner_url" type="url" class="input"/></div>
+      <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
+    </form>
+  </div>
 
-          const { users } = await app.api("/api/admin/users");
-          const ub = document.getElementById("user-rows");
-          ub.innerHTML = users
-            .map(
-              (u) => `
-              <tr class="border-t border-ink-900/5 dark:border-cream-100/5">
-                <td class="py-3">${u.email}</td>
-                <td class="py-3">${u.name || "-"}</td>
-                <td class="py-3"><span class="pill">${u.role}</span></td>
-                <td class="py-3 text-right">${app.formatIDR(u.balance)}</td>
-                <td class="py-3">${app.formatDate(u.created_at)}</td>
-              </tr>`
-            )
-            .join("");
+  <!-- Users -->
+  <div class="card mt-4" style="margin-bottom:32px">
+    <div style="font-weight:700;font-size:15px;margin-bottom:14px">Pengguna</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Email</th><th>Nama</th><th>Peran</th><th class="right">Saldo</th><th>Bergabung</th></tr></thead>
+        <tbody id="user-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
 
-          const { withdrawals } = await app.api("/api/admin/withdrawals");
-          const wb = document.getElementById("wd-rows");
-          wb.innerHTML = withdrawals
-            .map(
-              (w) => `
-              <tr class="border-t border-ink-900/5 dark:border-cream-100/5">
-                <td class="py-3">${app.formatDate(w.created_at)}</td>
-                <td class="py-3">${w.email}</td>
-                <td class="py-3">${w.method}</td>
-                <td class="py-3 font-mono text-xs">${w.destination}</td>
-                <td class="py-3">${app.formatIDR(w.amount)}</td>
-                <td class="py-3">${app.formatIDR(w.fee)}</td>
-                <td class="py-3"><span class="pill">${w.status}</span></td>
-                <td class="py-3 text-right">
-                  ${
-                    w.status === "pending"
-                      ? `<button data-act="complete" data-id="${w.id}" class="btn-secondary !px-3 !py-1 text-xs">Complete</button>
-                         <button data-act="fail" data-id="${w.id}" class="btn-secondary !px-3 !py-1 text-xs">Fail</button>`
-                      : ""
-                  }
-                </td>
-              </tr>`
-            )
-            .join("");
+<footer class="app-foot">© 2025 Esaku · <a href="/">Beranda</a></footer>
 
-          wb.addEventListener("click", async (ev) => {
-            const btn = ev.target.closest("button[data-act]");
-            if (!btn) return;
-            const url =
-              btn.dataset.act === "complete"
-                ? `/api/admin/withdrawals/${btn.dataset.id}/complete`
-                : `/api/admin/withdrawals/${btn.dataset.id}/fail`;
-            try {
-              await app.api(url, { method: "POST" });
-              app.showToast("Updated", "success");
-              loadAll();
-            } catch (err) {
-              app.showToast(err.message, "error");
-            }
-          }, { once: true });
-        }
+<script src="/js/common.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+(async function () {
+  const user = await shell.mount({ requireAdmin: true });
+  if (!user) return;
 
-        async function saveSetting(key, formId) {
-          const form = document.getElementById(formId);
-          form.addEventListener("submit", async (ev) => {
-            ev.preventDefault();
-            try {
-              await app.api(`/api/admin/settings/${key}`, {
-                method: "PUT",
-                body: readForm(form)
-              });
-              app.showToast("Saved", "success");
-            } catch (err) {
-              app.showToast(err.message, "error");
-            }
-          });
-        }
-        saveSetting("qris_provider", "provider-form");
-        saveSetting("fees", "fees-form");
-        saveSetting("branding", "branding-form");
+  function fillForm(form, data) {
+    Object.entries(data || {}).forEach(([k, v]) => {
+      const el = form.querySelector(`[name="${k}"]`);
+      if (el) el.value = v ?? "";
+    });
+  }
+  function readForm(form) {
+    const out = {};
+    form.querySelectorAll("[name]").forEach((el) => {
+      out[el.name] = el.type === "number" ? Number(el.value) : el.value;
+    });
+    return out;
+  }
 
-        loadAll();
-      })();
-    </script>
-  </body>
+  function statusPill(s) {
+    const map = { completed: "pill-green", pending: "pill-amber", processing: "pill-amber", failed: "pill-red" };
+    return `<span class="pill ${map[s] || "pill-default"}">${s}</span>`;
+  }
+
+  let allWithdrawals = [];
+  let wdFilter = "pending";
+
+  function renderWithdrawals() {
+    const list = allWithdrawals.filter((w) => {
+      if (wdFilter === "all") return true;
+      if (wdFilter === "pending") return w.status === "pending" || w.status === "processing";
+      return w.status === wdFilter;
+    });
+    const wb = document.getElementById("wd-rows");
+    wb.innerHTML = list.length
+      ? list.map((w) => `
+        <tr data-wd="${w.id}" data-status="${w.status}">
+          <td>${app.formatDate(w.created_at)}</td>
+          <td>${w.email}</td>
+          <td>${w.method === "bank" ? "Bank" : "E-Wallet"}</td>
+          <td class="text-mono" style="font-size:12px">${w.destination}</td>
+          <td class="right">${app.formatIDR(w.amount)}</td>
+          <td class="right">${app.formatIDR(w.fee)}</td>
+          <td>${statusPill(w.status)}</td>
+          <td class="right">${
+            (w.status === "pending" || w.status === "processing")
+              ? `<button class="btn btn-outline btn-sm" data-act="complete">Tandai Selesai</button>
+                 <button class="btn btn-outline btn-sm" data-act="fail">Gagalkan</button>`
+              : ""
+          }</td>
+        </tr>`).join("")
+      : '<tr><td colspan="8" class="empty">Tidak ada permintaan dengan status ini.</td></tr>';
+  }
+
+  document.querySelectorAll("#wdFilter .chip").forEach((c) => {
+    c.addEventListener("click", () => {
+      document.querySelectorAll("#wdFilter .chip").forEach((b) => b.classList.remove("is-active"));
+      c.classList.add("is-active");
+      wdFilter = c.dataset.wf;
+      renderWithdrawals();
+    });
+  });
+
+  async function loadStats() {
+    try {
+      const { stats } = await app.api("/api/admin/stats");
+      document.getElementById("stat-users").textContent = stats.total_users.toLocaleString("id-ID");
+      document.getElementById("stat-admins").textContent = `${stats.total_admins} admin · ${stats.total_users - stats.total_admins} user`;
+      document.getElementById("stat-balance").textContent = app.formatIDR(stats.total_balance);
+      document.getElementById("stat-pending-count").textContent = stats.pending_withdrawals.count.toLocaleString("id-ID");
+      document.getElementById("stat-pending-amount").textContent = app.formatIDR(stats.pending_withdrawals.amount);
+      document.getElementById("stat-qris-count").textContent = stats.paid_qris.count.toLocaleString("id-ID");
+      document.getElementById("stat-qris-gross").textContent = app.formatIDR(stats.paid_qris.gross);
+      document.getElementById("stat-qris-fee").textContent = app.formatIDR(stats.paid_qris.fee_collected);
+    } catch (err) { app.showToast(err.message, "error"); }
+  }
+
+  async function loadAll() {
+    await loadStats();
+    try {
+      const { settings } = await app.api("/api/admin/settings");
+      fillForm(document.getElementById("provider-form"), settings.qris_provider);
+      fillForm(document.getElementById("fees-form"), settings.fees);
+      fillForm(document.getElementById("branding-form"), settings.branding);
+    } catch (err) { app.showToast(err.message, "error"); }
+
+    try {
+      const { users } = await app.api("/api/admin/users");
+      document.getElementById("user-rows").innerHTML = users.length
+        ? users.map((u) => `
+          <tr>
+            <td>${u.email}</td>
+            <td>${u.name || "-"}</td>
+            <td><span class="pill ${u.role==="admin"?"pill-indigo":"pill-green"}">${u.role}</span></td>
+            <td class="right">${app.formatIDR(u.balance)}</td>
+            <td>${app.formatDate(u.created_at)}</td>
+          </tr>`).join("")
+        : '<tr><td colspan="5" class="empty">Belum ada pengguna.</td></tr>';
+    } catch (err) {}
+
+    try {
+      const { withdrawals } = await app.api("/api/admin/withdrawals");
+      allWithdrawals = withdrawals || [];
+      renderWithdrawals();
+    } catch (err) {}
+  }
+
+  document.getElementById("wd-rows").addEventListener("click", async (ev) => {
+    const btn = ev.target.closest("button[data-act]");
+    if (!btn) return;
+    const tr = btn.closest("tr");
+    const id = tr.dataset.wd;
+    const url = `/api/admin/withdrawals/${id}/${btn.dataset.act}`;
+    try {
+      await app.api(url, { method: "POST" });
+      app.showToast("Diperbarui", "success");
+      loadAll();
+    } catch (err) { app.showToast(err.message, "error"); }
+  });
+
+  function bindSave(formId, key) {
+    document.getElementById(formId).addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      try {
+        await app.api(`/api/admin/settings/${key}`, { method: "PUT", body: readForm(ev.currentTarget) });
+        app.showToast("Tersimpan", "success");
+      } catch (err) { app.showToast(err.message, "error"); }
+    });
+  }
+  bindSave("provider-form", "qris_provider");
+  bindSave("fees-form", "fees");
+  bindSave("branding-form", "branding");
+
+  loadAll();
+})();
+</script>
+</body>
 </html>

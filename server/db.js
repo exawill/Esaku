@@ -112,6 +112,39 @@ const DEFAULT_SETTINGS = {
   }
 };
 
+// Column-level migrations applied after the base CREATE TABLEs. Each entry
+// adds a column if it is not already present. Schema-evolution lives here
+// so older deployments stay forward-compatible.
+const COLUMN_MIGRATIONS = [
+  {
+    table: "users",
+    column: "device_id",
+    ddl: "ALTER TABLE users ADD COLUMN device_id VARCHAR(64) NULL",
+    index: { name: "idx_users_device", ddl: "CREATE INDEX idx_users_device ON users (device_id)" }
+  }
+];
+
+async function applyColumnMigrations() {
+  for (const m of COLUMN_MIGRATIONS) {
+    const cols = await query(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+      [m.table, m.column]
+    );
+    if (!cols.length) {
+      await query(m.ddl);
+    }
+    if (m.index) {
+      const idx = await query(
+        "SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?",
+        [m.table, m.index.name]
+      );
+      if (!idx.length) {
+        await query(m.index.ddl);
+      }
+    }
+  }
+}
+
 async function ensureSchema() {
   // If DB env not configured, skip silently and let routes return graceful errors.
   if (!process.env.DB_HOST) {
@@ -121,6 +154,7 @@ async function ensureSchema() {
   for (const stmt of SCHEMA_STATEMENTS) {
     await query(stmt);
   }
+  await applyColumnMigrations();
   for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
     await query(
       "INSERT IGNORE INTO cms_settings (`key`, value) VALUES (?, ?)",

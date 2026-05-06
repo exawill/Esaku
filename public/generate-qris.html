@@ -1,147 +1,220 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Esaku — Generate QRIS</title>
-    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <script src="/js/theme.js"></script>
-  </head>
-  <body class="font-sans">
-    <div id="app-root"></div>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — Buat QRIS</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div id="app-root"></div>
 
-    <template id="page-template">
-      <div class="grid lg:grid-cols-2 gap-6">
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="qris.title">Generate QRIS</h2>
-          <p class="text-sm text-ink-600 dark:text-cream-200 mt-1" data-i18n="qris.fee_note">A flat 0.7% fee is deducted on payment.</p>
-          <form id="qris-form" class="mt-6 space-y-4">
-            <div>
-              <label class="label" data-i18n="qris.amount_label">Amount (IDR)</label>
-              <input type="number" name="amount" min="1000" step="1000" class="input" required placeholder="50000" />
-            </div>
-            <button type="submit" class="btn-primary w-full justify-center" data-i18n="qris.create">Create QRIS</button>
-          </form>
+<main class="container">
+  <div class="page-head">
+    <div class="page-eyebrow">Buat QRIS</div>
+    <h1 class="page-title">Generate QRIS Pembayaran</h1>
+    <p class="page-sub">Masukkan nominal, klik buat, lalu tampilkan QR ke pelanggan. Berlaku 15 menit.</p>
+  </div>
+
+  <div class="grid-2 mt-4" style="margin-bottom:32px">
+    <!-- Form -->
+    <div class="card stack" style="gap:18px">
+      <div class="field">
+        <label class="label" for="amt">Nominal Pembayaran</label>
+        <div class="field-input lg">
+          <span class="px">Rp</span>
+          <input id="amt" type="text" inputmode="numeric" placeholder="0" oninput="onAmt(this)"/>
         </div>
+        <span class="hint" id="amt-hint">Min. Rp 1.000</span>
+      </div>
 
-        <div class="card p-6 lg:p-8">
-          <div id="qris-empty" class="h-full flex flex-col items-center justify-center text-center text-ink-600 dark:text-cream-200">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-40"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M20 14v7"/><path d="M14 20h6"/></svg>
-            <p class="mt-3 text-sm">Enter an amount to generate a QRIS code.</p>
-          </div>
-          <div id="qris-result" class="hidden">
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">QRIS · Esaku</p>
-                <p id="result-amount" class="mt-1 font-display text-2xl font-bold">—</p>
-              </div>
-              <span class="pill bg-emerald-100 text-emerald-800 dark:bg-emerald-800/30 dark:text-emerald-300" id="result-status">pending</span>
-            </div>
-            <img id="result-qr" alt="QRIS" class="mt-5 w-full aspect-square rounded-2xl bg-cream-50 dark:bg-ink-700 p-4 object-contain" />
-            <div class="mt-5 grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p class="text-ink-600 dark:text-cream-200" data-i18n="qris.expires">Expires in</p>
-                <p id="result-countdown" class="font-semibold">--:--</p>
-              </div>
-              <div>
-                <p class="text-ink-600 dark:text-cream-200">Net amount</p>
-                <p id="result-net" class="font-semibold">—</p>
-              </div>
-              <div class="col-span-2">
-                <p class="text-ink-600 dark:text-cream-200">Reference</p>
-                <p id="result-ref" class="font-mono text-xs break-all">—</p>
-              </div>
-            </div>
-            <div class="mt-5 flex gap-2">
-              <button id="copy-payload" class="btn-secondary flex-1" data-i18n="common.copy">Copy</button>
-              <button id="mock-pay" class="btn-primary flex-1">Simulate paid</button>
-            </div>
-          </div>
+      <div class="field">
+        <span class="label">Nominal Cepat</span>
+        <div class="chip-row" id="quickAmounts">
+          <button class="chip" data-amt="10000">10K</button>
+          <button class="chip" data-amt="25000">25K</button>
+          <button class="chip" data-amt="50000">50K</button>
+          <button class="chip" data-amt="100000">100K</button>
+          <button class="chip" data-amt="250000">250K</button>
         </div>
       </div>
-    </template>
 
-    <div id="page-content" class="hidden"></div>
+      <div class="summary" id="preview-summary" style="display:none">
+        <div class="summary-row"><span class="l">Pembeli Bayar</span><span class="v" id="p-buyer">—</span></div>
+        <div class="summary-row"><span class="l">MDR 0,7%</span><span class="v" id="p-fee">—</span></div>
+        <div class="summary-row net"><span class="l">Anda Terima</span><span class="v" id="p-net">—</span></div>
+      </div>
 
-    <script src="/js/i18n.js"></script>
-    <script src="/js/common.js"></script>
-    <script src="/js/shell.js"></script>
-    <script>
-      (async function () {
-        const tpl = document.getElementById("page-template").content.cloneNode(true);
-        document.getElementById("page-content").appendChild(tpl);
+      <div class="row" style="gap:8px">
+        <button id="generate-btn" class="btn btn-dark" style="flex:1" disabled>Buat QRIS Pembayaran →</button>
+        <button id="reset-btn" class="btn btn-outline" type="button">Reset</button>
+      </div>
+    </div>
 
-        const user = await shell.mount({ pageTitleKey: "side.qris" });
-        if (!user) return;
+    <!-- QRIS card -->
+    <div class="qris-card" id="qris-card">
+      <div class="row-between" style="align-items:flex-start">
+        <div>
+          <div class="label">Merchant</div>
+          <div class="biz" id="biz-name">—</div>
+          <div class="mid" id="biz-id">—</div>
+        </div>
+        <div style="text-align:center" id="timer-box">
+          <div style="font-size:13px;font-weight:800;color:#4ade80;font-family:'DM Mono',monospace" id="timer">--:--</div>
+          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Tersisa</div>
+        </div>
+      </div>
 
-        let countdownTimer = null;
-        let activeOrder = null;
+      <div style="text-align:center">
+        <div class="label">Nominal</div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:-0.03em;margin-top:4px;line-height:1" id="shown-amount">Rp 0</div>
+      </div>
 
-        function startCountdown(expiresAt) {
-          clearInterval(countdownTimer);
-          const expires = new Date(expiresAt).getTime();
-          const el = document.getElementById("result-countdown");
-          function tick() {
-            const remain = Math.max(0, Math.floor((expires - Date.now()) / 1000));
-            const m = String(Math.floor(remain / 60)).padStart(2, "0");
-            const s = String(remain % 60).padStart(2, "0");
-            el.textContent = `${m}:${s}`;
-            if (remain <= 0) {
-              clearInterval(countdownTimer);
-              document.getElementById("result-status").textContent = "expired";
-            }
-          }
-          tick();
-          countdownTimer = setInterval(tick, 1000);
-        }
+      <div class="qr-square" id="qr-host">
+        <div style="text-align:center;color:var(--ink-lt);font-size:12px">Belum ada QRIS aktif.</div>
+      </div>
 
-        function showOrder(order) {
-          activeOrder = order;
-          document.getElementById("qris-empty").classList.add("hidden");
-          document.getElementById("qris-result").classList.remove("hidden");
-          document.getElementById("result-amount").textContent = app.formatIDR(order.amount);
-          document.getElementById("result-net").textContent = app.formatIDR(order.net_amount);
-          document.getElementById("result-ref").textContent = order.reference;
-          document.getElementById("result-status").textContent = order.status;
-          document.getElementById("result-qr").src = order.qr_image;
-          startCountdown(order.expires_at);
-        }
+      <div style="text-align:center">
+        <div style="font-size:10px;color:#666" id="qr-ref">—</div>
+        <div style="font-size:10px;color:#666;margin-top:3px">Scan dengan GoPay · OVO · DANA · ShopeePay · Bank</div>
+      </div>
 
-        document.getElementById("qris-form").addEventListener("submit", async (ev) => {
-          ev.preventDefault();
-          const fd = new FormData(ev.currentTarget);
-          try {
-            const res = await app.api("/api/qris", {
-              method: "POST",
-              body: { amount: Number(fd.get("amount")) }
-            });
-            showOrder(res.order);
-          } catch (err) {
-            app.showToast(err.message, "error");
-          }
-        });
+      <div class="footstrip" id="footstrip">
+        <span>QRIS · MDR 0,7% DITANGGUNG PEMBELI</span>
+        <span class="r">esaku.id</span>
+      </div>
+    </div>
+  </div>
 
-        document.getElementById("copy-payload").addEventListener("click", async () => {
-          if (!activeOrder) return;
-          await navigator.clipboard.writeText(activeOrder.qr_payload);
-          app.showToast(window.i18n.t("common.copied"), "success");
-        });
+  <div class="card" id="actions-card" style="display:none;margin-bottom:32px">
+    <div class="row-between">
+      <div>
+        <div style="font-weight:700;font-size:13px">Aksi</div>
+        <div class="text-mid" style="font-size:12px">Untuk pengembangan: tandai QRIS sebagai dibayar untuk menambah saldo dummy.</div>
+      </div>
+      <div class="row" style="gap:8px">
+        <button id="copy-btn" class="btn btn-outline">Salin Payload</button>
+        <button id="mock-btn" class="btn btn-indigo">Tandai Dibayar (dev)</button>
+      </div>
+    </div>
+  </div>
+</main>
 
-        document.getElementById("mock-pay").addEventListener("click", async () => {
-          if (!activeOrder) return;
-          try {
-            await app.api(`/api/qris/${activeOrder.id}/mock-pay`, { method: "POST" });
-            document.getElementById("result-status").textContent = "paid";
-            app.showToast("Marked as paid", "success");
-          } catch (err) {
-            app.showToast(err.message, "error");
-          }
-        });
-      })();
-    </script>
-  </body>
+<footer class="app-foot">© 2025 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
+
+<script src="/js/common.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+(async function () {
+  const user = await shell.mount();
+  if (!user) return;
+  document.getElementById("biz-name").textContent = user.name || user.email;
+  document.getElementById("biz-id").textContent = user.email;
+
+  let activeOrder = null;
+  let timerHandle = null;
+
+  function setSummary(n) {
+    const wrap = document.getElementById("preview-summary");
+    if (n < 1000) { wrap.style.display = "none"; return; }
+    wrap.style.display = "";
+    const fee = Math.round(n * 0.007);
+    document.getElementById("p-buyer").textContent = app.formatIDR(n + fee);
+    document.getElementById("p-fee").textContent = app.formatIDR(fee);
+    document.getElementById("p-net").textContent = app.formatIDR(n);
+  }
+
+  function onAmt(el) {
+    const n = app.unFmt(el.value);
+    el.value = n ? n.toLocaleString("id-ID") : "";
+    setSummary(n);
+    document.getElementById("amt-hint").textContent =
+      n === 0 ? "Min. Rp 1.000" :
+      n < 1000 ? "Min. Rp 1.000" : "Siap dibuat";
+    document.getElementById("amt-hint").classList.toggle("error", n > 0 && n < 1000);
+    document.getElementById("generate-btn").disabled = n < 1000;
+    document.querySelectorAll("#quickAmounts .chip").forEach((b) =>
+      b.classList.toggle("is-active", Number(b.dataset.amt) === n));
+  }
+  window.onAmt = onAmt;
+
+  document.querySelectorAll("#quickAmounts .chip").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.getElementById("amt").value = Number(btn.dataset.amt).toLocaleString("id-ID");
+      onAmt(document.getElementById("amt"));
+    });
+  });
+
+  document.getElementById("reset-btn").addEventListener("click", () => {
+    document.getElementById("amt").value = "";
+    onAmt(document.getElementById("amt"));
+  });
+
+  function startTimer(expiresAt) {
+    clearInterval(timerHandle);
+    const expires = new Date(expiresAt).getTime();
+    const elT = document.getElementById("timer");
+    function tick() {
+      const remain = Math.max(0, Math.floor((expires - Date.now()) / 1000));
+      const m = String(Math.floor(remain / 60)).padStart(2, "0");
+      const s = String(remain % 60).padStart(2, "0");
+      elT.textContent = m + ":" + s;
+      if (remain <= 0) {
+        clearInterval(timerHandle);
+        document.getElementById("footstrip").classList.add("expired");
+        document.getElementById("footstrip").firstElementChild.textContent = "QRIS KADALUARSA";
+      }
+    }
+    tick();
+    timerHandle = setInterval(tick, 1000);
+  }
+
+  function showOrder(order) {
+    activeOrder = order;
+    document.getElementById("shown-amount").textContent = app.formatIDR(order.amount);
+    document.getElementById("qr-ref").textContent = order.reference;
+    document.getElementById("qr-host").innerHTML = `<img src="${order.qr_image}" alt="QRIS"/>`;
+    document.getElementById("footstrip").classList.remove("expired");
+    document.getElementById("footstrip").firstElementChild.textContent = "QRIS · MDR 0,7% DITANGGUNG PEMBELI";
+    document.getElementById("actions-card").style.display = "";
+    startTimer(order.expires_at);
+  }
+
+  document.getElementById("generate-btn").addEventListener("click", async () => {
+    const amount = app.unFmt(document.getElementById("amt").value);
+    if (amount < 1000) return;
+    const btn = document.getElementById("generate-btn");
+    btn.disabled = true; btn.textContent = "Memproses...";
+    try {
+      const res = await app.api("/api/qris", { method: "POST", body: { amount } });
+      showOrder(res.order);
+      app.showToast("QRIS dibuat", "success");
+    } catch (err) {
+      app.showToast(err.message, "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Buat QRIS Pembayaran →";
+    }
+  });
+
+  document.getElementById("copy-btn").addEventListener("click", async () => {
+    if (!activeOrder) return;
+    try {
+      await navigator.clipboard.writeText(activeOrder.qr_payload);
+      app.showToast("Payload disalin", "success");
+    } catch (e) { app.showToast("Gagal menyalin", "error"); }
+  });
+
+  document.getElementById("mock-btn").addEventListener("click", async () => {
+    if (!activeOrder) return;
+    try {
+      const res = await app.api(`/api/qris/${activeOrder.id}/mock-pay`, { method: "POST" });
+      app.showToast(`Dibayar — saldo: ${app.formatIDR(res.balance)}`, "success");
+    } catch (err) { app.showToast(err.message, "error"); }
+  });
+})();
+</script>
+</body>
 </html>

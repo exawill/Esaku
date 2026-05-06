@@ -8,6 +8,35 @@ const router = express.Router();
 
 router.use(requireAdmin);
 
+router.get("/stats", async (_req, res) => {
+  const [users] = await query("SELECT COUNT(*) AS c FROM users");
+  const [admins] = await query("SELECT COUNT(*) AS c FROM users WHERE role='admin'");
+  const [balance] = await query("SELECT COALESCE(SUM(balance),0) AS s FROM users");
+  const [pendingWd] = await query(
+    "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS s FROM withdrawals WHERE status IN ('pending','processing')"
+  );
+  const [completedWd] = await query(
+    "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS s FROM withdrawals WHERE status='completed'"
+  );
+  const [paidQris] = await query(
+    "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS gross, COALESCE(SUM(fee),0) AS fee FROM qris_orders WHERE status='paid'"
+  );
+  res.json({
+    stats: {
+      total_users: Number(users.c || 0),
+      total_admins: Number(admins.c || 0),
+      total_balance: Number(balance.s || 0),
+      pending_withdrawals: { count: Number(pendingWd.c || 0), amount: Number(pendingWd.s || 0) },
+      completed_withdrawals: { count: Number(completedWd.c || 0), amount: Number(completedWd.s || 0) },
+      paid_qris: {
+        count: Number(paidQris.c || 0),
+        gross: Number(paidQris.gross || 0),
+        fee_collected: Number(paidQris.fee || 0)
+      }
+    }
+  });
+});
+
 router.get("/settings", async (_req, res) => {
   const keys = Object.keys(DEFAULT_SETTINGS);
   const out = {};

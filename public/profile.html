@@ -1,109 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Esaku — Profile</title>
-    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <script src="/js/theme.js"></script>
-  </head>
-  <body class="font-sans">
-    <div id="app-root"></div>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — Profil</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div id="app-root"></div>
 
-    <template id="page-template">
-      <div class="grid lg:grid-cols-2 gap-6">
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="profile.title">Profile</h2>
-          <form id="profile-form" class="mt-6 space-y-4">
-            <div>
-              <label class="label" data-i18n="auth.email">Email</label>
-              <input type="email" id="p-email" class="input" disabled />
-            </div>
-            <div>
-              <label class="label">Role</label>
-              <input type="text" id="p-role" class="input" disabled />
-            </div>
-            <div>
-              <label class="label" data-i18n="common.balance">Balance</label>
-              <input type="text" id="p-balance" class="input" disabled />
-            </div>
-            <div>
-              <label class="label" data-i18n="auth.name">Full name</label>
-              <input type="text" name="name" id="p-name" class="input" />
-            </div>
-            <button type="submit" class="btn-primary" data-i18n="profile.update">Update profile</button>
-          </form>
-        </div>
+<main class="container">
+  <div class="page-head">
+    <div class="page-eyebrow">Profil</div>
+    <h1 class="page-title">Akun Anda</h1>
+    <p class="page-sub">Perbarui nama dan kata sandi Anda di sini.</p>
+  </div>
 
-        <div class="card p-6 lg:p-8">
-          <h2 class="font-display text-xl font-bold" data-i18n="profile.change_password">Change password</h2>
-          <form id="password-form" class="mt-6 space-y-4">
-            <div>
-              <label class="label" data-i18n="profile.current_password">Current password</label>
-              <input type="password" name="current_password" class="input" autocomplete="current-password" />
-            </div>
-            <div>
-              <label class="label" data-i18n="profile.new_password">New password</label>
-              <input type="password" name="new_password" class="input" autocomplete="new-password" minlength="8" required />
-            </div>
-            <button type="submit" class="btn-primary" data-i18n="common.save">Save</button>
-          </form>
+  <div class="grid-2 mt-4" style="margin-bottom:32px">
+    <!-- Identity card -->
+    <div class="card stack" style="gap:16px">
+      <div class="row" style="gap:14px">
+        <div class="user-pill avatar" id="big-avatar" style="width:54px;height:54px;font-size:18px;border-radius:8px"></div>
+        <div>
+          <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em" id="p-name-display">—</div>
+          <div class="text-mid" style="font-size:12px" id="p-email-display">—</div>
+          <div class="row mt-2" style="gap:6px">
+            <span class="pill pill-green" id="p-role-pill">user</span>
+            <span class="pill pill-indigo">Tanpa KYC</span>
+          </div>
         </div>
       </div>
-    </template>
 
-    <div id="page-content" class="hidden"></div>
+      <div class="summary">
+        <div class="summary-row"><span class="l">Saldo</span><span class="v" id="p-balance">—</span></div>
+        <div class="summary-row"><span class="l">Bergabung</span><span class="v" id="p-joined">—</span></div>
+        <div class="summary-row"><span class="l">Login OAuth</span><span class="v" id="p-oauth">—</span></div>
+      </div>
 
-    <script src="/js/i18n.js"></script>
-    <script src="/js/common.js"></script>
-    <script src="/js/shell.js"></script>
-    <script>
-      (async function () {
-        const tpl = document.getElementById("page-template").content.cloneNode(true);
-        document.getElementById("page-content").appendChild(tpl);
+      <form id="profile-form" class="stack" style="gap:12px">
+        <div class="field">
+          <label class="label" for="p-name">Nama Lengkap</label>
+          <input id="p-name" class="input" name="name" type="text"/>
+        </div>
+        <button type="submit" class="btn btn-dark">Simpan Perubahan</button>
+      </form>
+    </div>
 
-        const user = await shell.mount({ pageTitleKey: "profile.title" });
-        if (!user) return;
+    <!-- Password -->
+    <div class="card stack" style="gap:16px">
+      <div>
+        <div style="font-weight:700;font-size:15px">Ubah Kata Sandi</div>
+        <div class="text-mid" style="font-size:12px;margin-top:2px">Minimal 8 karakter. Kosongkan kata sandi saat ini jika akun Anda hanya melalui Hostinger OAuth.</div>
+      </div>
+      <form id="password-form" class="stack" style="gap:12px">
+        <div class="field">
+          <label class="label" for="cur">Kata Sandi Saat Ini</label>
+          <input id="cur" class="input" type="password" name="current_password" autocomplete="current-password"/>
+        </div>
+        <div class="field">
+          <label class="label" for="np">Kata Sandi Baru</label>
+          <input id="np" class="input" type="password" name="new_password" minlength="8" required autocomplete="new-password"/>
+        </div>
+        <button type="submit" class="btn btn-dark">Simpan Kata Sandi</button>
+      </form>
+      <div class="row mt-4" style="gap:6px;justify-content:flex-end">
+        <button id="signout-here" class="btn btn-outline btn-sm">Keluar dari akun</button>
+      </div>
+    </div>
+  </div>
+</main>
 
-        const { profile } = await app.api("/api/profile");
-        document.getElementById("p-email").value = profile.email;
-        document.getElementById("p-role").value = profile.role;
-        document.getElementById("p-balance").value = app.formatIDR(profile.balance);
-        document.getElementById("p-name").value = profile.name || "";
+<footer class="app-foot">© 2025 Esaku · <a href="/">Beranda</a></footer>
 
-        document.getElementById("profile-form").addEventListener("submit", async (ev) => {
-          ev.preventDefault();
-          const name = document.getElementById("p-name").value.trim();
-          try {
-            await app.api("/api/profile", { method: "PATCH", body: { name } });
-            app.showToast("Saved", "success");
-          } catch (err) {
-            app.showToast(err.message, "error");
-          }
-        });
+<script src="/js/common.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+(async function () {
+  const user = await shell.mount();
+  if (!user) return;
 
-        document.getElementById("password-form").addEventListener("submit", async (ev) => {
-          ev.preventDefault();
-          const fd = new FormData(ev.currentTarget);
-          try {
-            await app.api("/api/profile/password", {
-              method: "POST",
-              body: {
-                current_password: fd.get("current_password") || "",
-                new_password: fd.get("new_password")
-              }
-            });
-            app.showToast("Password updated", "success");
-            ev.currentTarget.reset();
-          } catch (err) {
-            app.showToast(err.message, "error");
-          }
-        });
-      })();
-    </script>
-  </body>
+  function initials(u) {
+    return (u.name || u.email || "?").split(/\s+|@/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+  }
+
+  try {
+    const me = await app.api("/api/profile");
+    const p = me.profile;
+    document.getElementById("big-avatar").textContent = initials(p);
+    document.getElementById("p-name-display").textContent = p.name || p.email.split("@")[0];
+    document.getElementById("p-email-display").textContent = p.email;
+    document.getElementById("p-role-pill").textContent = p.role;
+    document.getElementById("p-role-pill").className = "pill " + (p.role === "admin" ? "pill-indigo" : "pill-green");
+    document.getElementById("p-balance").textContent = app.formatIDR(p.balance);
+    document.getElementById("p-joined").textContent = app.formatDate(p.created_at);
+    document.getElementById("p-oauth").textContent = p.oauth_provider || "—";
+    document.getElementById("p-name").value = p.name || "";
+  } catch (err) { app.showToast(err.message, "error"); }
+
+  document.getElementById("profile-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const name = document.getElementById("p-name").value.trim();
+    try {
+      await app.api("/api/profile", { method: "PATCH", body: { name } });
+      app.showToast("Profil tersimpan", "success");
+      document.getElementById("p-name-display").textContent = name || (await app.getMe()).email.split("@")[0];
+    } catch (err) { app.showToast(err.message, "error"); }
+  });
+
+  document.getElementById("password-form").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const fd = new FormData(ev.currentTarget);
+    try {
+      await app.api("/api/profile/password", {
+        method: "POST",
+        body: { current_password: fd.get("current_password") || "", new_password: fd.get("new_password") }
+      });
+      app.showToast("Kata sandi diperbarui", "success");
+      ev.currentTarget.reset();
+    } catch (err) { app.showToast(err.message, "error"); }
+  });
+
+  document.getElementById("signout-here").addEventListener("click", app.signOut);
+})();
+</script>
+</body>
 </html>

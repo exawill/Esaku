@@ -1,158 +1,252 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Esaku — Withdrawal</title>
-    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/styles.css" />
-    <script src="/js/theme.js"></script>
-  </head>
-  <body class="font-sans">
-    <div id="app-root"></div>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — Cairkan Dana</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+<div id="app-root"></div>
 
-    <template id="page-template">
-      <div class="grid lg:grid-cols-3 gap-6">
-        <div class="card p-6 lg:p-8 lg:col-span-1">
-          <h2 class="font-display text-xl font-bold" data-i18n="wd.title">Withdrawal</h2>
-          <p class="text-sm text-ink-600 dark:text-cream-200 mt-1" data-i18n="wd.min_note">Minimum withdrawal: IDR 50,000</p>
+<main class="container">
+  <div class="page-head">
+    <div class="page-eyebrow">Cairkan</div>
+    <h1 class="page-title">Cairkan Dana</h1>
+    <p class="page-sub">Transfer ke e-wallet (Rp 2.500) atau bank (Rp 6.500). Min. Rp 50.000 · Maks. Rp 5 juta/minggu.</p>
+  </div>
 
-          <form id="wd-form" class="mt-6 space-y-4">
-            <div>
-              <label class="label" data-i18n="wd.method">Method</label>
-              <div class="grid grid-cols-2 gap-2" id="method-toggle">
-                <button type="button" data-method="bank" class="rounded-2xl border border-ink-900/10 dark:border-cream-100/10 px-3 py-2 text-sm font-medium" data-i18n="wd.bank">Bank Transfer</button>
-                <button type="button" data-method="ewallet" class="rounded-2xl border border-ink-900/10 dark:border-cream-100/10 px-3 py-2 text-sm font-medium" data-i18n="wd.ewallet">E-Wallet</button>
-              </div>
-              <input type="hidden" name="method" value="bank" />
-              <p id="fee-note" class="text-xs text-ink-600 dark:text-cream-200 mt-2" data-i18n="wd.fee_note_bank">Bank transfer fee: IDR 6,500</p>
-            </div>
-            <div>
-              <label class="label" data-i18n="wd.dest">Account / phone number</label>
-              <input type="text" name="destination" class="input" required />
-            </div>
-            <div>
-              <label class="label" data-i18n="wd.amount">Amount (IDR)</label>
-              <input type="number" name="amount" min="50000" step="1000" class="input" required placeholder="50000" />
-              <p id="total-note" class="text-xs text-ink-600 dark:text-cream-200 mt-2"></p>
-            </div>
-            <button type="submit" class="btn-primary w-full justify-center" data-i18n="wd.submit">Request withdrawal</button>
-          </form>
-        </div>
+  <!-- Saldo banner -->
+  <div class="dark-card row-between mt-4" style="align-items:flex-start">
+    <div>
+      <div class="label">Saldo Tersedia</div>
+      <div class="v" id="balance">—</div>
+    </div>
+    <div style="text-align:right">
+      <div class="label">Limit / Minggu</div>
+      <div style="font-size:18px;font-weight:700;color:#aaa;margin-top:6px">Rp 5.000.000</div>
+      <div style="font-size:11px;color:#555;margin-top:2px">Min. Rp 50.000</div>
+    </div>
+  </div>
 
-        <div class="card p-6 lg:p-8 lg:col-span-2">
-          <h3 class="font-semibold">History</h3>
-          <div class="mt-4 overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="text-left text-xs uppercase tracking-wider text-ink-600 dark:text-cream-200">
-                <tr>
-                  <th class="py-2" data-i18n="common.date">Date</th>
-                  <th class="py-2" data-i18n="wd.method">Method</th>
-                  <th class="py-2" data-i18n="common.amount">Amount</th>
-                  <th class="py-2">Fee</th>
-                  <th class="py-2" data-i18n="common.status">Status</th>
-                </tr>
-              </thead>
-              <tbody id="wd-rows"></tbody>
-            </table>
-          </div>
-        </div>
+  <div class="grid-2 mt-4">
+    <!-- Method + destination -->
+    <div class="card stack" style="gap:16px">
+      <span class="label">Metode Pencairan</span>
+      <div class="method-grid" id="methodGrid">
+        <button class="method is-active" data-method="ewallet">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12h2"/></svg>
+          <span class="method-name">E-Wallet</span>
+          <span class="method-sub">Biaya Rp 2.500 · GoPay · OVO · DANA · ShopeePay · LinkAja</span>
+        </button>
+        <button class="method" data-method="bank">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"/></svg>
+          <span class="method-name">Transfer Bank</span>
+          <span class="method-sub">Biaya Rp 6.500 · BCA · Mandiri · BNI · BRI · BSI · CIMB</span>
+        </button>
       </div>
-    </template>
 
-    <div id="page-content" class="hidden"></div>
+      <div class="field">
+        <label class="label" id="destLabel">Tujuan</label>
+        <div class="chip-row" id="destChips"></div>
+      </div>
 
-    <script src="/js/i18n.js"></script>
-    <script src="/js/common.js"></script>
-    <script src="/js/shell.js"></script>
-    <script>
-      (async function () {
-        const tpl = document.getElementById("page-template").content.cloneNode(true);
-        document.getElementById("page-content").appendChild(tpl);
+      <div class="field">
+        <label class="label" for="dest-num" id="destNumLabel">Nomor Tujuan</label>
+        <input id="dest-num" class="input" type="text" placeholder=""/>
+      </div>
+    </div>
 
-        const user = await shell.mount({ pageTitleKey: "side.withdrawal" });
-        if (!user) return;
+    <!-- Amount + summary + submit -->
+    <div class="card stack" style="gap:16px">
+      <div class="field">
+        <label class="label" for="wd-amt">Nominal Pencairan</label>
+        <div class="field-input lg">
+          <span class="px">Rp</span>
+          <input id="wd-amt" type="text" inputmode="numeric" placeholder="0" oninput="onWdAmt(this)"/>
+        </div>
+        <span class="hint" id="wd-hint">Min. Rp 50.000</span>
+      </div>
+      <div class="chip-row">
+        <button class="chip" type="button" data-quick="100000">100K</button>
+        <button class="chip" type="button" data-quick="250000">250K</button>
+        <button class="chip" type="button" data-quick="500000">500K</button>
+        <button class="chip" type="button" data-quick="1000000">1 Jt</button>
+        <button class="chip" type="button" id="quick-max">Maks.</button>
+      </div>
 
-        const fees = (await app.api("/api/withdrawal/quote")).fees;
+      <div class="summary" id="wd-summary">
+        <div class="summary-row"><span class="l">Nominal</span><span class="v" id="s-amt">Rp 0</span></div>
+        <div class="summary-row"><span class="l">Biaya Transfer</span><span class="v" id="s-fee">Rp 2.500</span></div>
+        <div class="summary-row danger"><span class="l">Total Dipotong</span><span class="v" id="s-total">Rp 2.500</span></div>
+        <div class="summary-row"><span class="l">Estimasi Proses</span><span class="v">1×24 jam kerja</span></div>
+      </div>
 
-        function pickMethod(method) {
-          document.querySelector('input[name="method"]').value = method;
-          document.querySelectorAll("#method-toggle button").forEach((b) => {
-            const active = b.dataset.method === method;
-            b.classList.toggle("bg-ink-900", active);
-            b.classList.toggle("text-cream-50", active);
-            b.classList.toggle("dark:bg-cream-100", active);
-            b.classList.toggle("dark:text-ink-900", active);
-          });
-          document.getElementById("fee-note").setAttribute(
-            "data-i18n",
-            method === "bank" ? "wd.fee_note_bank" : "wd.fee_note_ewallet"
-          );
-          window.i18n.apply();
-          updateTotal();
-        }
-        document.querySelectorAll("#method-toggle button").forEach((btn) => {
-          btn.addEventListener("click", () => pickMethod(btn.dataset.method));
-        });
-        pickMethod("bank");
+      <button id="submit-btn" class="btn btn-dark btn-block" disabled>Proses Pencairan</button>
+    </div>
+  </div>
 
-        function updateTotal() {
-          const method = document.querySelector('input[name="method"]').value;
-          const amt = Number(document.querySelector('input[name="amount"]').value || 0);
-          const fee = method === "bank" ? fees.bank : fees.ewallet;
-          const total = amt + fee;
-          document.getElementById("total-note").textContent =
-            `Fee ${app.formatIDR(fee)} · Total debit ${app.formatIDR(total)}`;
-        }
-        document.querySelector('input[name="amount"]').addEventListener("input", updateTotal);
+  <div class="card mt-4" style="margin-bottom:32px">
+    <div class="row-between" style="margin-bottom:8px">
+      <div style="font-weight:700;font-size:13px">Riwayat Pencairan</div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Tanggal</th><th>Metode</th><th>Tujuan</th><th class="right">Nominal</th><th class="right">Biaya</th><th>Status</th></tr></thead>
+        <tbody id="hist-rows"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
 
-        async function loadHistory() {
-          const data = await app.api("/api/withdrawal");
-          const tbody = document.getElementById("wd-rows");
-          tbody.innerHTML = "";
-          if (!data.withdrawals.length) {
-            tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-ink-600 dark:text-cream-200">No withdrawals yet.</td></tr>`;
-            return;
-          }
-          for (const w of data.withdrawals) {
-            const tr = document.createElement("tr");
-            tr.className = "border-t border-ink-900/5 dark:border-cream-100/5";
-            tr.innerHTML = `
-              <td class="py-3">${app.formatDate(w.created_at)}</td>
-              <td class="py-3">${w.method === "bank" ? "Bank" : "E-Wallet"} <span class="text-xs text-ink-600 dark:text-cream-200">· ${w.destination}</span></td>
-              <td class="py-3">${app.formatIDR(w.amount)}</td>
-              <td class="py-3">${app.formatIDR(w.fee)}</td>
-              <td class="py-3"><span class="pill">${w.status}</span></td>
-            `;
-            tbody.appendChild(tr);
-          }
-        }
-        loadHistory();
+<footer class="app-foot">© 2025 Esaku · <a href="/">Beranda</a></footer>
 
-        document.getElementById("wd-form").addEventListener("submit", async (ev) => {
-          ev.preventDefault();
-          const fd = new FormData(ev.currentTarget);
-          try {
-            await app.api("/api/withdrawal", {
-              method: "POST",
-              body: {
-                method: fd.get("method"),
-                destination: fd.get("destination"),
-                amount: Number(fd.get("amount"))
-              }
-            });
-            app.showToast("Withdrawal requested", "success");
-            ev.currentTarget.reset();
-            pickMethod("bank");
-            loadHistory();
-          } catch (err) {
-            app.showToast(err.message, "error");
-          }
-        });
-      })();
-    </script>
-  </body>
+<script src="/js/common.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+(async function () {
+  const user = await shell.mount();
+  if (!user) return;
+
+  let fees = { bank: 6500, ewallet: 2500, min: 50000 };
+  let weeklyMax = 5000000;
+  let balance = 0;
+  let method = "ewallet";
+
+  const DESTS = {
+    ewallet: { items: ["GoPay", "OVO", "DANA", "ShopeePay", "LinkAja"], placeholder: "08xx-xxxx-xxxx", numLabel: "Nomor HP Terdaftar" },
+    bank:    { items: ["BCA", "Mandiri", "BNI", "BRI", "BSI", "CIMB"],    placeholder: "Masukkan nomor rekening",  numLabel: "Nomor Rekening" }
+  };
+
+  function renderDestChips() {
+    const cfg = DESTS[method];
+    const host = document.getElementById("destChips");
+    host.innerHTML = cfg.items.map((d, i) => `<button type="button" class="chip ${i===0?"is-active":""}" data-dest="${d}">${d}</button>`).join("");
+    host.querySelectorAll(".chip").forEach((b) => b.addEventListener("click", () => {
+      host.querySelectorAll(".chip").forEach((x) => x.classList.remove("is-active"));
+      b.classList.add("is-active");
+    }));
+    document.getElementById("destLabel").textContent = method === "ewallet" ? "Pilih E-Wallet" : "Pilih Bank";
+    document.getElementById("destNumLabel").textContent = cfg.numLabel;
+    document.getElementById("dest-num").placeholder = cfg.placeholder;
+  }
+
+  function pickedDest() {
+    const el = document.querySelector("#destChips .chip.is-active");
+    return el ? el.dataset.dest : "";
+  }
+
+  function recalc() {
+    const n = app.unFmt(document.getElementById("wd-amt").value);
+    const fee = method === "ewallet" ? fees.ewallet : fees.bank;
+    document.getElementById("s-amt").textContent = app.formatIDR(n);
+    document.getElementById("s-fee").textContent = app.formatIDR(fee);
+    document.getElementById("s-total").textContent = app.formatIDR(n + fee);
+
+    const valid = n >= fees.min && n <= weeklyMax && (n + fee) <= balance;
+    document.getElementById("submit-btn").disabled = !valid;
+    const hint = document.getElementById("wd-hint");
+    if (n === 0) hint.textContent = "Min. " + app.formatIDR(fees.min);
+    else if (n < fees.min) hint.textContent = "Min. " + app.formatIDR(fees.min);
+    else if (n > weeklyMax) hint.textContent = "Maks. " + app.formatIDR(weeklyMax) + "/minggu";
+    else if (n + fee > balance) hint.textContent = "Saldo tidak cukup (termasuk biaya)";
+    else hint.textContent = "Nominal valid";
+    hint.classList.toggle("error", n > 0 && !valid);
+  }
+
+  function onWdAmt(el) {
+    const n = app.unFmt(el.value);
+    el.value = n ? n.toLocaleString("id-ID") : "";
+    recalc();
+  }
+  window.onWdAmt = onWdAmt;
+
+  document.querySelectorAll("[data-quick]").forEach((b) => b.addEventListener("click", () => {
+    document.getElementById("wd-amt").value = Number(b.dataset.quick).toLocaleString("id-ID");
+    recalc();
+  }));
+  document.getElementById("quick-max").addEventListener("click", () => {
+    const fee = method === "ewallet" ? fees.ewallet : fees.bank;
+    const cap = Math.min(weeklyMax, Math.max(0, balance - fee));
+    document.getElementById("wd-amt").value = cap ? cap.toLocaleString("id-ID") : "";
+    recalc();
+  });
+
+  document.querySelectorAll("#methodGrid .method").forEach((m) => {
+    m.addEventListener("click", () => {
+      document.querySelectorAll("#methodGrid .method").forEach((x) => x.classList.remove("is-active"));
+      m.classList.add("is-active");
+      method = m.dataset.method;
+      renderDestChips();
+      recalc();
+    });
+  });
+
+  function statusPill(s) {
+    const map = { completed: "pill-green", pending: "pill-amber", processing: "pill-amber", failed: "pill-red" };
+    return `<span class="pill ${map[s] || "pill-default"}">${s}</span>`;
+  }
+
+  async function loadHistory() {
+    try {
+      const data = await app.api("/api/withdrawal");
+      const tbody = document.getElementById("hist-rows");
+      if (!data.withdrawals.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty" style="padding:24px">Belum ada pencairan.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.withdrawals.map((w) => `
+        <tr>
+          <td>${app.formatDate(w.created_at)}</td>
+          <td>${w.method === "bank" ? "Bank" : "E-Wallet"}</td>
+          <td class="text-mono" style="font-size:12px">${w.destination}</td>
+          <td class="right">${app.formatIDR(w.amount)}</td>
+          <td class="right">${app.formatIDR(w.fee)}</td>
+          <td>${statusPill(w.status)}</td>
+        </tr>`).join("");
+    } catch (err) { /* ignore */ }
+  }
+
+  document.getElementById("submit-btn").addEventListener("click", async () => {
+    const dest = pickedDest() + " " + document.getElementById("dest-num").value.trim();
+    const amount = app.unFmt(document.getElementById("wd-amt").value);
+    if (!document.getElementById("dest-num").value.trim()) {
+      app.showToast("Isi nomor tujuan", "error"); return;
+    }
+    const btn = document.getElementById("submit-btn");
+    btn.disabled = true; btn.textContent = "Memproses...";
+    try {
+      const res = await app.api("/api/withdrawal", { method: "POST", body: { method, destination: dest.trim(), amount } });
+      balance = Number(res.balance);
+      document.getElementById("balance").textContent = app.formatIDR(balance);
+      document.getElementById("wd-amt").value = "";
+      app.showToast("Pencairan diajukan", "success");
+      recalc();
+      loadHistory();
+    } catch (err) {
+      app.showToast(err.message, "error");
+    } finally {
+      btn.textContent = "Proses Pencairan";
+      recalc();
+    }
+  });
+
+  // Init
+  try {
+    const me = await app.api("/api/profile");
+    balance = Number(me.profile.balance || 0);
+    document.getElementById("balance").textContent = app.formatIDR(balance);
+  } catch (err) {}
+  try {
+    const q = await app.api("/api/withdrawal/quote");
+    fees = q.fees;
+  } catch (err) {}
+  renderDestChips();
+  recalc();
+  loadHistory();
+})();
+</script>
+</body>
 </html>

@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 
 const { ensureSchema, ensureAdminUser } = require("./db");
+const { deviceCookie } = require("./middleware/device");
 const authRoutes = require("./routes/auth");
 const qrisRoutes = require("./routes/qris");
 const withdrawalRoutes = require("./routes/withdrawal");
@@ -23,6 +24,9 @@ app.disable("x-powered-by");
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Per-browser device cookie (issued on first request, read on every request)
+app.use(deviceCookie);
 
 // API rate limiter
 app.use(

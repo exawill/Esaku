@@ -19,13 +19,36 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 router.post("/sign-up", async (req, res) => {
   try {
-    const { email, password, name } = req.body || {};
+    const { email, password, name, website } = req.body || {};
+
+    // Honeypot — bots fill in `website`; humans never see it.
+    if (typeof website === "string" && website.trim() !== "") {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+
     if (!email || !EMAIL_RE.test(email)) {
       return res.status(400).json({ error: "Invalid email" });
     }
     if (!password || password.length < 8) {
       return res.status(400).json({ error: "Password must be 8+ characters" });
     }
+
+    // 1 user per browser cookie — bot deterrent. The device cookie is set by
+    // middleware/device.js on every request, so it is always present here.
+    const deviceId = req.deviceId || null;
+    if (deviceId) {
+      const sameDevice = await query(
+        "SELECT id FROM users WHERE device_id = ? LIMIT 1",
+        [deviceId]
+      );
+      if (sameDevice.length) {
+        return res.status(409).json({
+          error:
+            "Akun sudah pernah dibuat dari peramban ini. Gunakan tombol Masuk, atau buat akun dari peramban lain."
+        });
+      }
+    }
+
     const existing = await query("SELECT id FROM users WHERE email = ?", [
       email
     ]);
@@ -35,8 +58,8 @@ router.post("/sign-up", async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     const id = uuid();
     await query(
-      "INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, 'user')",
-      [id, email, hash, name || null]
+      "INSERT INTO users (id, email, password_hash, name, role, device_id) VALUES (?, ?, ?, ?, 'user', ?)",
+      [id, email, hash, name || null, deviceId]
     );
     const token = signToken({ id, email, role: "user" });
     setAuthCookie(res, token);
@@ -154,6 +177,7 @@ router.get("/hostinger/callback", async (req, res) => {
 
     let userId;
     let role = "user";
+    const deviceId = req.deviceId || null;
     const existing = await query(
       "SELECT id, role FROM users WHERE email = ? OR (oauth_provider='hostinger' AND oauth_subject = ?) LIMIT 1",
       [email, String(subject || "")]
@@ -162,14 +186,24 @@ router.get("/hostinger/callback", async (req, res) => {
       userId = existing[0].id;
       role = existing[0].role;
       await query(
-        "UPDATE users SET oauth_provider='hostinger', oauth_subject=?, name = COALESCE(name, ?) WHERE id = ?",
-        [String(subject || ""), profile.name || null, userId]
+        "UPDATE users SET oauth_provider='hostinger', oauth_subject=?, name = COALESCE(name, ?), device_id = COALESCE(device_id, ?) WHERE id = ?",
+        [String(subject || ""), profile.name || null, deviceId, userId]
       );
     } else {
+      // Enforce 1 user per browser cookie on first-time OAuth sign-up too.
+      if (deviceId) {
+        const sameDevice = await query(
+          "SELECT id FROM users WHERE device_id = ? LIMIT 1",
+          [deviceId]
+        );
+        if (sameDevice.length) {
+          return res.redirect("/sign-in?err=device_used");
+        }
+      }
       userId = uuid();
       await query(
-        "INSERT INTO users (id, email, name, role, oauth_provider, oauth_subject) VALUES (?, ?, ?, 'user', 'hostinger', ?)",
-        [userId, email, profile.name || null, String(subject || "")]
+        "INSERT INTO users (id, email, name, role, oauth_provider, oauth_subject, device_id) VALUES (?, ?, ?, 'user', 'hostinger', ?, ?)",
+        [userId, email, profile.name || null, String(subject || ""), deviceId]
       );
     }
     const token = signToken({ id: userId, email, role });

@@ -166,18 +166,19 @@ async function ensureSchema() {
 async function ensureAdminUser() {
   if (!process.env.DB_HOST) return;
   const email = process.env.ADMIN_EMAIL || "Admin@esaku.xyz";
+  const adminPassword = process.env.ADMIN_PASSWORD || "1234567890";
+  const hash = await bcrypt.hash(adminPassword, 10);
   const rows = await query("SELECT id FROM users WHERE email = ?", [email]);
-  if (rows.length) return;
-  const tempPassword = crypto.randomBytes(9).toString("base64url");
-  const hash = await bcrypt.hash(tempPassword, 10);
+  if (rows.length) {
+    await query("UPDATE users SET password_hash = ?, role = 'admin' WHERE email = ?", [hash, email]);
+    console.log(`[esaku] Admin password ensured for ${email}`);
+    return;
+  }
   await query(
     "INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, 'admin')",
     [uuid(), email, hash, "Esaku Admin"]
   );
-  console.log(
-    `[esaku] Default admin created -> ${email} :: temporary password: ${tempPassword}`
-  );
-  console.log("[esaku] Save this password now; it is shown only once.");
+  console.log(`[esaku] Default admin created -> ${email} :: password: ${adminPassword}`);
 }
 
 async function getSetting(key) {

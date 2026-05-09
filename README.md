@@ -31,9 +31,8 @@ public/            Static frontend (clean URL friendly)
   profile.html
   admin.html       Admin CMS
   js/              i18n, theme, common, shell
-  css/styles.css   Compiled Tailwind (run `npm run build:css`)
+  css/app.css      Prebuilt frontend CSS
   assets/          Logo, banner, favicon
-src/styles.css     Tailwind input
 scripts/init-db.js One-shot DB initializer
 ```
 
@@ -73,10 +72,15 @@ strips the extension).
    HOSTINGER_REDIRECT_URI=https://esaku.xyz/auth/hostinger/callback
    ```
 
-2. Install + build:
+2. Install dependencies:
 
    ```bash
    npm install
+   ```
+
+   The frontend CSS is already built and served from `public/css/app.css`. If you want to re-run the demo build path, use:
+
+   ```bash
    npm run build:css
    ```
 

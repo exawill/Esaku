@@ -85,6 +85,10 @@
   if (!user) return;
   document.getElementById("hello").textContent = "Halo, " + (user.name || user.email.split("@")[0]);
 
+  const tooltip = document.createElement("div");
+  tooltip.className = "chart-tooltip";
+  document.body.appendChild(tooltip);
+
   function renderChart(series) {
     const host = document.getElementById("chart");
     host.innerHTML = "";
@@ -93,7 +97,19 @@
       const bar = document.createElement("div");
       bar.className = "bar" + (i === series.length - 1 ? " peak" : "");
       bar.style.height = Math.max(6, (p.inflow / max) * 130) + "px";
-      bar.title = p.day + " — " + app.formatIDR(p.inflow);
+      
+      bar.addEventListener("mouseenter", (e) => {
+        tooltip.innerHTML = `<div class="t-day">${p.day}</div><div class="t-val">${app.formatIDR(p.inflow)}</div>`;
+        tooltip.classList.add("is-visible");
+      });
+      bar.addEventListener("mousemove", (e) => {
+        tooltip.style.left = e.clientX + "px";
+        tooltip.style.top = e.clientY + "px";
+      });
+      bar.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("is-visible");
+      });
+      
       host.appendChild(bar);
     });
     document.getElementById("rangeStart").textContent = series[0]?.day || "—";

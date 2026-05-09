@@ -1,198 +1,283 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Esaku — CMS Admin</title>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/css/app.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Esaku — CMS Admin</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
+
 <body>
-<div id="app-root"></div>
+  <div id="app-root"></div>
 
-<main class="container">
-  <div class="page-head">
-    <div class="page-eyebrow">CMS Admin</div>
-    <h1 class="page-title">Dasbor Admin</h1>
-    <p class="page-sub">Ringkasan platform, antrian pencairan, dan pengaturan operasional Esaku.</p>
-  </div>
+  <main class="container">
+    <div class="page-head">
+      <div class="page-eyebrow">CMS Admin</div>
+      <h1 class="page-title">Dasbor Admin</h1>
+      <p class="page-sub">Ringkasan platform, antrian pencairan, dan pengaturan operasional Esaku.</p>
+    </div>
 
-  <!-- Stats banner -->
-  <div class="grid-2 mt-4">
-    <div class="dark-card">
-      <div class="row-between" style="align-items:flex-start">
-        <div>
-          <div class="label">Total Pengguna</div>
-          <div class="v" id="stat-users">—</div>
-          <div class="meta" id="stat-admins">— admin</div>
+    <!-- Stats banner -->
+    <div class="grid-2 mt-4">
+      <div class="dark-card">
+        <div class="row-between" style="align-items:flex-start">
+          <div>
+            <div class="label">Total Pengguna</div>
+            <div class="v" id="stat-users">—</div>
+            <div class="meta" id="stat-admins">— admin</div>
+          </div>
+          <div style="text-align:right">
+            <div class="label">Aggregate Saldo</div>
+            <div style="font-size:24px;font-weight:800;color:var(--green);margin-top:6px;text-shadow:0 0 10px var(--green-lt)" id="stat-balance">—</div>
+            <div class="meta">Total semua pengguna</div>
+          </div>
         </div>
-        <div style="text-align:right">
-          <div class="label">Total Saldo Pengguna</div>
-          <div style="font-size:18px;font-weight:700;color:#aaa;margin-top:6px" id="stat-balance">—</div>
+      </div>
+      <div class="card stack" style="gap:10px">
+        <div class="row-between">
+          <div>
+            <div style="font-weight:700;font-size:14px">Permintaan Pencairan</div>
+            <div class="text-mid" style="font-size:12px;margin-top:2px">Tertunda &amp; sedang diproses</div>
+          </div>
+          <a href="#wd-section" class="btn btn-outline btn-sm">Buka antrian →</a>
+        </div>
+        <div class="grid-2" style="gap:10px">
+          <div class="kpi">
+            <div class="l">Tertunda</div>
+            <div class="v" id="stat-pending-count">—</div>
+          </div>
+          <div class="kpi">
+            <div class="l">Nominal Tertunda</div>
+            <div class="v" id="stat-pending-amount">—</div>
+          </div>
         </div>
       </div>
     </div>
-    <div class="card stack" style="gap:10px">
+
+    <!-- Charts Section -->
+    <div class="mt-4">
+      <div class="card">
+        <div class="row-between">
+          <div style="font-size:13px;font-weight:700">Statistik Pendapatan Platform (30 Hari)</div>
+          <div class="pill pill-indigo">Omset</div>
+        </div>
+        <div class="bars mt-4" id="chart-platform" style="height:150px"></div>
+        <div class="bars-axis"><span id="plat-start">—</span><span id="plat-end">—</span></div>
+      </div>
+    </div>
+
+    <div class="kpi-grid mt-4">
+      <div class="kpi">
+        <div class="l">QRIS Berhasil</div>
+        <div class="v" id="stat-qris-count">—</div>
+      </div>
+      <div class="kpi">
+        <div class="l">Total Omset (kotor)</div>
+        <div class="v" id="stat-qris-gross">—</div>
+      </div>
+      <div class="kpi">
+        <div class="l">MDR Terkumpul</div>
+        <div class="v" id="stat-qris-fee">—</div>
+      </div>
+    </div>
+
+    <!-- Withdrawal Requests (promoted) -->
+    <div class="card mt-6" id="wd-section">
+      <div class="row-between" style="margin-bottom:14px">
+        <div>
+          <div style="font-weight:700;font-size:15px">Permintaan Pencairan</div>
+          <div class="text-mid" style="font-size:12px;margin-top:2px">Lihat permintaan pencairan dari pengguna. Tandai
+            selesai setelah dana ditransfer, atau gagalkan untuk mengembalikan saldo otomatis.</div>
+        </div>
+        <div class="row" style="gap:6px">
+          <div class="chip-row" id="wdFilter">
+            <button class="chip is-active" data-wf="all">Semua</button>
+            <button class="chip" data-wf="pending">Tertunda</button>
+            <button class="chip" data-wf="completed">Selesai</button>
+            <button class="chip" data-wf="failed">Gagal</button>
+          </div>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Email</th>
+              <th>Metode</th>
+              <th>Tujuan</th>
+              <th class="right">Nominal</th>
+              <th class="right">Biaya</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="wd-rows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Provider QRIS -->
+    <div class="card mt-4">
+      <div class="row-between" style="margin-bottom:14px">
+        <div>
+          <div style="font-weight:700;font-size:15px">API Provider QRIS</div>
+          <div class="text-mid" style="font-size:12px;margin-top:2px">Pilih API yang dipakai untuk men-generate QRIS
+            bagi pengguna.</div>
+        </div>
+      </div>
+      <form id="provider-form" class="grid-2" style="gap:14px">
+        <div class="field">
+          <label class="label">Provider</label>
+          <select name="provider" class="input">
+            <option value="internal">Internal (built-in)</option>
+            <option value="midtrans">Midtrans</option>
+            <option value="xendit">Xendit</option>
+            <option value="ipaymu">iPaymu</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label">API Type</label>
+          <select name="api_type" class="input">
+            <option value="snap">SNAP API</option>
+            <option value="non-snap">Non-SNAP API</option>
+          </select>
+        </div>
+        <div class="field"><label class="label">Merchant ID <span
+              style="font-weight:normal;color:#888;font-size:12px">(Opsional)</span></label><input name="merchant_id"
+            class="input" /></div>
+        <div class="field" style="grid-column:1/-1"><label class="label">API Base URL</label><input name="api_base_url"
+            type="url" class="input" /></div>
+        <div class="field" style="grid-column:1/-1"><label class="label">API Key / Secret</label><input name="api_key"
+            class="input" /></div>
+        <div class="field"><label class="label">Masa Berlaku QRIS (menit)</label><input name="expiry_minutes"
+            type="number" min="1" max="1440" class="input" /></div>
+        <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Fees -->
+    <div class="card mt-4">
+      <div style="font-weight:700;font-size:15px;margin-bottom:14px">MDR &amp; Biaya Pencairan</div>
+      <form id="fees-form" class="grid-2" style="gap:14px">
+        <div class="field"><label class="label">MDR QRIS Flat (%)</label><input name="qris_flat_percent" type="number"
+            step="0.01" class="input" /></div>
+        <div class="field"><label class="label">Pencairan Minimum (IDR)</label><input name="withdrawal_min_idr"
+            type="number" step="500" class="input" /></div>
+        <div class="field"><label class="label">Biaya Bank (IDR)</label><input name="withdrawal_bank_fee_idr"
+            type="number" step="500" class="input" /></div>
+        <div class="field"><label class="label">Biaya E-Wallet (IDR)</label><input name="withdrawal_ewallet_fee_idr"
+            type="number" step="500" class="input" /></div>
+        <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Branding -->
+    <div class="card mt-4">
+      <div style="font-weight:700;font-size:15px;margin-bottom:14px">Branding</div>
+      <form id="branding-form" class="grid-2" style="gap:14px">
+        <div class="field"><label class="label">Nama Situs</label><input name="site_name" class="input" /></div>
+        <div class="field"><label class="label">Logo URL</label><input name="logo_url" type="file"
+            accept="image/png, image/jpeg, image/webp, image/svg+xml" class="input" />
+          <div class="text-mid" style="font-size:12px;margin-top:4px" id="logo-preview">Saat ini: <a href=""
+              target="_blank" id="logo-link">Lihat</a></div>
+        </div>
+        <div class="field" style="grid-column:1/-1"><label class="label">Banner URL</label><input name="banner_url"
+            type="file" accept="image/png, image/jpeg, image/webp, image/svg+xml" class="input" />
+          <div class="text-mid" style="font-size:12px;margin-top:4px" id="banner-preview">Saat ini: <a href=""
+              target="_blank" id="banner-link">Lihat</a></div>
+        </div>
+        <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- System Reset (Danger Zone) -->
+    <div class="card mt-4" style="border-color:rgba(255,51,102,0.2)">
       <div class="row-between">
         <div>
-          <div style="font-weight:700;font-size:14px">Permintaan Pencairan</div>
-          <div class="text-mid" style="font-size:12px;margin-top:2px">Tertunda &amp; sedang diproses</div>
+          <div style="font-weight:700;font-size:15px;color:var(--red)">Zona Berbahaya: Reset Platform</div>
+          <div class="text-mid" style="font-size:12px;margin-top:2px">Menghapus semua riwayat transaksi, pesanan QRIS, permintaan pencairan, dan mereset semua saldo pengguna ke Rp 0.</div>
         </div>
-        <a href="#wd-section" class="btn btn-outline btn-sm">Buka antrian →</a>
-      </div>
-      <div class="grid-2" style="gap:10px">
-        <div class="kpi"><div class="l">Tertunda</div><div class="v" id="stat-pending-count">—</div></div>
-        <div class="kpi"><div class="l">Nominal Tertunda</div><div class="v" id="stat-pending-amount">—</div></div>
+        <button id="reset-platform-btn" class="btn btn-outline text-red">Reset Semua Data</button>
       </div>
     </div>
-  </div>
 
-  <div class="kpi-grid mt-4">
-    <div class="kpi"><div class="l">QRIS Berhasil</div><div class="v" id="stat-qris-count">—</div></div>
-    <div class="kpi"><div class="l">Total Omset (kotor)</div><div class="v" id="stat-qris-gross">—</div></div>
-    <div class="kpi"><div class="l">MDR Terkumpul</div><div class="v" id="stat-qris-fee">—</div></div>
-  </div>
-
-  <!-- Withdrawal Requests (promoted) -->
-  <div class="card mt-6" id="wd-section">
-    <div class="row-between" style="margin-bottom:14px">
-      <div>
-        <div style="font-weight:700;font-size:15px">Permintaan Pencairan</div>
-        <div class="text-mid" style="font-size:12px;margin-top:2px">Lihat permintaan pencairan dari pengguna. Tandai selesai setelah dana ditransfer, atau gagalkan untuk mengembalikan saldo otomatis.</div>
-      </div>
-      <div class="row" style="gap:6px">
-        <div class="chip-row" id="wdFilter">
-          <button class="chip is-active" data-wf="pending">Tertunda</button>
-          <button class="chip" data-wf="all">Semua</button>
-          <button class="chip" data-wf="completed">Selesai</button>
-          <button class="chip" data-wf="failed">Gagal</button>
-        </div>
+    <!-- Users -->
+    <div class="card mt-4" style="margin-bottom:32px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:14px">Pengguna</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Nama</th>
+              <th>Peran</th>
+              <th class="right">Saldo</th>
+              <th>Bergabung</th>
+              <th class="right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="user-rows"></tbody>
+        </table>
       </div>
     </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Tanggal</th><th>Email</th><th>Metode</th><th>Tujuan</th><th class="right">Nominal</th><th class="right">Biaya</th><th>Status</th><th></th></tr></thead>
-        <tbody id="wd-rows"></tbody>
-      </table>
-    </div>
-  </div>
+  </main>
 
-  <!-- Provider QRIS -->
-  <div class="card mt-4">
-    <div class="row-between" style="margin-bottom:14px">
-      <div>
-        <div style="font-weight:700;font-size:15px">API Provider QRIS</div>
-        <div class="text-mid" style="font-size:12px;margin-top:2px">Pilih API yang dipakai untuk men-generate QRIS bagi pengguna.</div>
-      </div>
-    </div>
-    <form id="provider-form" class="grid-2" style="gap:14px">
-      <div class="field">
-        <label class="label">Provider</label>
-        <select name="provider" class="input">
-          <option value="internal">Internal (built-in)</option>
-          <option value="midtrans">Midtrans</option>
-          <option value="xendit">Xendit</option>
-          <option value="ipaymu">iPaymu</option>
-          <option value="custom">Custom</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="label">API Type</label>
-        <select name="api_type" class="input">
-          <option value="snap">SNAP API</option>
-          <option value="non-snap">Non-SNAP API</option>
-        </select>
-      </div>
-      <div class="field"><label class="label">Merchant ID <span style="font-weight:normal;color:#888;font-size:12px">(Opsional)</span></label><input name="merchant_id" class="input"/></div>
-      <div class="field" style="grid-column:1/-1"><label class="label">API Base URL</label><input name="api_base_url" type="url" class="input"/></div>
-      <div class="field" style="grid-column:1/-1"><label class="label">API Key / Secret</label><input name="api_key" class="input"/></div>
-      <div class="field"><label class="label">Masa Berlaku QRIS (menit)</label><input name="expiry_minutes" type="number" min="1" max="1440" class="input"/></div>
-      <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
-    </form>
-  </div>
+  <footer class="app-foot">© 2026 Esaku · <a href="/">Beranda</a></footer>
 
-  <!-- Fees -->
-  <div class="card mt-4">
-    <div style="font-weight:700;font-size:15px;margin-bottom:14px">MDR &amp; Biaya Pencairan</div>
-    <form id="fees-form" class="grid-2" style="gap:14px">
-      <div class="field"><label class="label">MDR QRIS Flat (%)</label><input name="qris_flat_percent" type="number" step="0.01" class="input"/></div>
-      <div class="field"><label class="label">Pencairan Minimum (IDR)</label><input name="withdrawal_min_idr" type="number" step="500" class="input"/></div>
-      <div class="field"><label class="label">Biaya Bank (IDR)</label><input name="withdrawal_bank_fee_idr" type="number" step="500" class="input"/></div>
-      <div class="field"><label class="label">Biaya E-Wallet (IDR)</label><input name="withdrawal_ewallet_fee_idr" type="number" step="500" class="input"/></div>
-      <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
-    </form>
-  </div>
+  <script src="/js/common.js"></script>
+  <script src="/js/shell.js"></script>
+  <script>
+    (async function () {
+      const user = await shell.mount({ requireAdmin: true });
+      if (!user) return;
 
-  <!-- Branding -->
-  <div class="card mt-4">
-    <div style="font-weight:700;font-size:15px;margin-bottom:14px">Branding</div>
-    <form id="branding-form" class="grid-2" style="gap:14px">
-      <div class="field"><label class="label">Nama Situs</label><input name="site_name" class="input"/></div>
-      <div class="field"><label class="label">Logo URL</label><input name="logo_url" type="file" accept="image/png, image/jpeg, image/webp, image/svg+xml" class="input"/><div class="text-mid" style="font-size:12px;margin-top:4px" id="logo-preview">Saat ini: <a href="" target="_blank" id="logo-link">Lihat</a></div></div>
-      <div class="field" style="grid-column:1/-1"><label class="label">Banner URL</label><input name="banner_url" type="file" accept="image/png, image/jpeg, image/webp, image/svg+xml" class="input"/><div class="text-mid" style="font-size:12px;margin-top:4px" id="banner-preview">Saat ini: <a href="" target="_blank" id="banner-link">Lihat</a></div></div>
-      <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
-    </form>
-  </div>
-
-  <!-- Users -->
-  <div class="card mt-4" style="margin-bottom:32px">
-    <div style="font-weight:700;font-size:15px;margin-bottom:14px">Pengguna</div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Email</th><th>Nama</th><th>Peran</th><th class="right">Saldo</th><th>Bergabung</th></tr></thead>
-        <tbody id="user-rows"></tbody>
-      </table>
-    </div>
-  </div>
-</main>
-
-<footer class="app-foot">© 2025 Esaku · <a href="/">Beranda</a></footer>
-
-<script src="/js/common.js"></script>
-<script src="/js/shell.js"></script>
-<script>
-(async function () {
-  const user = await shell.mount({ requireAdmin: true });
-  if (!user) return;
-
-  function fillForm(form, data) {
-    Object.entries(data || {}).forEach(([k, v]) => {
-      const el = form.querySelector(`[name="${k}"]`);
-      if (el) {
-        if (el.type !== "file") el.value = v ?? "";
-        else {
-          const link = document.getElementById(k.split("_")[0] + "-link");
-          if (link) { link.href = v; link.textContent = v; }
-        }
+      function fillForm(form, data) {
+        Object.entries(data || {}).forEach(([k, v]) => {
+          const el = form.querySelector(`[name="${k}"]`);
+          if (el) {
+            if (el.type !== "file") el.value = v ?? "";
+            else {
+              const link = document.getElementById(k.split("_")[0] + "-link");
+              if (link) { link.href = v; link.textContent = v; }
+            }
+          }
+        });
       }
-    });
-  }
-  function readForm(form) {
-    const out = {};
-    form.querySelectorAll("[name]").forEach((el) => {
-      out[el.name] = el.type === "number" ? Number(el.value) : el.value;
-    });
-    return out;
-  }
+      function readForm(form) {
+        const out = {};
+        form.querySelectorAll("[name]").forEach((el) => {
+          out[el.name] = el.type === "number" ? Number(el.value) : el.value;
+        });
+        return out;
+      }
 
-  function statusPill(s) {
-    const map = { completed: "pill-green", pending: "pill-amber", processing: "pill-amber", failed: "pill-red" };
-    return `<span class="pill ${map[s] || "pill-default"}">${s}</span>`;
-  }
+      function statusPill(s) {
+        const map = { completed: "pill-green", pending: "pill-amber", processing: "pill-amber", failed: "pill-red" };
+        return `<span class="pill ${map[s] || "pill-default"}">${s}</span>`;
+      }
 
-  let allWithdrawals = [];
-  let wdFilter = "pending";
+      let allWithdrawals = [];
+      let wdFilter = "all";
 
-  function renderWithdrawals() {
-    const list = allWithdrawals.filter((w) => {
-      if (wdFilter === "all") return true;
-      if (wdFilter === "pending") return w.status === "pending" || w.status === "processing";
-      return w.status === wdFilter;
-    });
-    const wb = document.getElementById("wd-rows");
-    wb.innerHTML = list.length
-      ? list.map((w) => `
+      function renderWithdrawals() {
+        const list = allWithdrawals.filter((w) => {
+          if (wdFilter === "all") return true;
+          if (wdFilter === "pending") return w.status === "pending" || w.status === "processing";
+          return w.status === wdFilter;
+        });
+        const wb = document.getElementById("wd-rows");
+        wb.innerHTML = list.length
+          ? list.map((w) => `
         <tr data-wd="${w.id}" data-status="${w.status}">
           <td>${app.formatDate(w.created_at)}</td>
           <td>${w.email}</td>
@@ -201,120 +286,202 @@
           <td class="right">${app.formatIDR(w.amount)}</td>
           <td class="right">${app.formatIDR(w.fee)}</td>
           <td>${statusPill(w.status)}</td>
-          <td class="right">${
-            (w.status === "pending" || w.status === "processing")
-              ? `<button class="btn btn-outline btn-sm" data-act="complete">Tandai Selesai</button>
-                 <button class="btn btn-outline btn-sm" data-act="fail">Gagalkan</button>`
+          <td class="right">${(w.status === "pending" || w.status === "processing")
+              ? `<button class="btn btn-outline btn-sm" data-act="complete" title="Tandai Selesai" style="padding:4px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                 <button class="btn btn-outline btn-sm text-red" data-act="fail" title="Gagalkan" style="padding:4px 8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`
               : ""
-          }</td>
+            }</td>
         </tr>`).join("")
-      : '<tr><td colspan="8" class="empty">Tidak ada permintaan dengan status ini.</td></tr>';
-  }
+          : '<tr><td colspan="8" class="empty">Tidak ada permintaan dengan status ini.</td></tr>';
+      }
 
-  document.querySelectorAll("#wdFilter .chip").forEach((c) => {
-    c.addEventListener("click", () => {
-      document.querySelectorAll("#wdFilter .chip").forEach((b) => b.classList.remove("is-active"));
-      c.classList.add("is-active");
-      wdFilter = c.dataset.wf;
-      renderWithdrawals();
-    });
-  });
+      document.querySelectorAll("#wdFilter .chip").forEach((c) => {
+        c.addEventListener("click", () => {
+          document.querySelectorAll("#wdFilter .chip").forEach((b) => b.classList.remove("is-active"));
+          c.classList.add("is-active");
+          wdFilter = c.dataset.wf;
+          renderWithdrawals();
+        });
+      });
 
-  async function loadStats() {
-    try {
-      const { stats } = await app.api("/api/admin/stats");
-      document.getElementById("stat-users").textContent = stats.total_users.toLocaleString("id-ID");
-      document.getElementById("stat-admins").textContent = `${stats.total_admins} admin · ${stats.total_users - stats.total_admins} user`;
-      document.getElementById("stat-balance").textContent = app.formatIDR(stats.total_balance);
-      document.getElementById("stat-pending-count").textContent = stats.pending_withdrawals.count.toLocaleString("id-ID");
-      document.getElementById("stat-pending-amount").textContent = app.formatIDR(stats.pending_withdrawals.amount);
-      document.getElementById("stat-qris-count").textContent = stats.paid_qris.count.toLocaleString("id-ID");
-      document.getElementById("stat-qris-gross").textContent = app.formatIDR(stats.paid_qris.gross);
-      document.getElementById("stat-qris-fee").textContent = app.formatIDR(stats.paid_qris.fee_collected);
-    } catch (err) { app.showToast(err.message, "error"); }
-  }
+      const tooltip = document.createElement("div");
+      tooltip.className = "chart-tooltip";
+      document.body.appendChild(tooltip);
 
-  async function loadAll() {
-    await loadStats();
-    try {
-      const { settings } = await app.api("/api/admin/settings");
-      fillForm(document.getElementById("provider-form"), settings.qris_provider);
-      fillForm(document.getElementById("fees-form"), settings.fees);
-      fillForm(document.getElementById("branding-form"), settings.branding);
-    } catch (err) { app.showToast(err.message, "error"); }
+      function renderChart(hostId, series, axisIds) {
+        const host = document.getElementById(hostId);
+        host.innerHTML = "";
+        if (!series.length) {
+          host.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--ink-lt);font-size:12px">Data belum tersedia</div>';
+          return;
+        }
+        const max = Math.max(1, ...series.map((p) => Math.abs(p.value)));
+        series.forEach((p, i) => {
+          const bar = document.createElement("div");
+          bar.className = "bar" + (i === series.length - 1 ? " peak" : "");
+          bar.style.height = Math.max(6, (Math.abs(p.value) / max) * 100) + "px";
+          
+          bar.addEventListener("mouseenter", (e) => {
+            tooltip.innerHTML = `<div class="t-day">${p.day}</div><div class="t-val">${app.formatIDR(p.value)}</div>`;
+            tooltip.classList.add("is-visible");
+          });
+          bar.addEventListener("mousemove", (e) => {
+            tooltip.style.left = e.clientX + "px";
+            tooltip.style.top = e.clientY + "px";
+          });
+          bar.addEventListener("mouseleave", () => {
+            tooltip.classList.remove("is-visible");
+          });
+          
+          host.appendChild(bar);
+        });
+        document.getElementById(axisIds[0]).textContent = series[0]?.day || "—";
+        document.getElementById(axisIds[1]).textContent = series[series.length - 1]?.day || "—";
+      }
 
-    try {
-      const { users } = await app.api("/api/admin/users");
-      document.getElementById("user-rows").innerHTML = users.length
-        ? users.map((u) => `
-          <tr>
-            <td>${u.email}</td>
-            <td>${u.name || "-"}</td>
-            <td><span class="pill ${u.role==="admin"?"pill-indigo":"pill-green"}">${u.role}</span></td>
+      async function loadStats() {
+        try {
+          const data = await app.api("/api/admin/stats?days=30");
+          const { stats, revenue_series, balance_series } = data;
+          document.getElementById("stat-users").textContent = stats.total_users.toLocaleString("id-ID");
+          document.getElementById("stat-admins").textContent = `${stats.total_admins} admin · ${stats.total_users - stats.total_admins} user`;
+          document.getElementById("stat-balance").textContent = app.formatIDR(stats.total_balance);
+          document.getElementById("stat-pending-count").textContent = stats.pending_withdrawals.count.toLocaleString("id-ID");
+          document.getElementById("stat-pending-amount").textContent = app.formatIDR(stats.pending_withdrawals.amount);
+          document.getElementById("stat-qris-count").textContent = stats.paid_qris.count.toLocaleString("id-ID");
+          document.getElementById("stat-qris-gross").textContent = app.formatIDR(stats.paid_qris.gross);
+          document.getElementById("stat-qris-fee").textContent = app.formatIDR(stats.paid_qris.fee_collected);
+
+          renderChart("chart-platform", revenue_series, ["plat-start", "plat-end"]);
+        } catch (err) { app.showToast(err.message, "error"); }
+      }
+
+      async function loadAll() {
+        await loadStats();
+        try {
+          const { settings } = await app.api("/api/admin/settings");
+          fillForm(document.getElementById("provider-form"), settings.qris_provider);
+          fillForm(document.getElementById("fees-form"), settings.fees);
+          fillForm(document.getElementById("branding-form"), settings.branding);
+        } catch (err) { app.showToast(err.message, "error"); }
+
+        try {
+          const { users } = await app.api("/api/admin/users");
+          document.getElementById("user-rows").innerHTML = users.length
+            ? users.map((u) => `
+          <tr data-uid="${u.id}">
+            <td>${app.esc(u.email)}</td>
+            <td>${app.esc(u.name || "-")}</td>
+            <td><span class="pill ${u.role === "admin" ? "pill-indigo" : "pill-green"}">${u.role}</span></td>
             <td class="right">${app.formatIDR(u.balance)}</td>
             <td>${app.formatDate(u.created_at)}</td>
+            <td class="right">
+              ${u.id !== user.id ? `<button class="btn btn-outline btn-sm text-red" data-act="delete-user">Hapus</button>` : ""}
+            </td>
           </tr>`).join("")
-        : '<tr><td colspan="5" class="empty">Belum ada pengguna.</td></tr>';
-    } catch (err) {}
+            : '<tr><td colspan="6" class="empty">Belum ada pengguna.</td></tr>';
+        } catch (err) { app.showToast(err.message, "error"); }
 
-    try {
-      const { withdrawals } = await app.api("/api/admin/withdrawals");
-      allWithdrawals = withdrawals || [];
-      renderWithdrawals();
-    } catch (err) {}
-  }
+        try {
+          const { withdrawals } = await app.api("/api/admin/withdrawals");
+          allWithdrawals = withdrawals || [];
+          renderWithdrawals();
+        } catch (err) { }
+      }
 
-  document.getElementById("wd-rows").addEventListener("click", async (ev) => {
-    const btn = ev.target.closest("button[data-act]");
-    if (!btn) return;
-    const tr = btn.closest("tr");
-    const id = tr.dataset.wd;
-    const url = `/api/admin/withdrawals/${id}/${btn.dataset.act}`;
-    try {
-      await app.api(url, { method: "POST" });
-      app.showToast("Diperbarui", "success");
-      loadAll();
-    } catch (err) { app.showToast(err.message, "error"); }
-  });
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
-  }
-
-  function bindSave(formId, key) {
-    document.getElementById(formId).addEventListener("submit", async (ev) => {
-      ev.preventDefault();
-      try {
-        const formData = readForm(ev.currentTarget);
+      document.getElementById("reset-platform-btn").addEventListener("click", async () => {
+        const ok = await app.confirm(
+          "Reset Seluruh Platform?",
+          "Ini akan menghapus SEMUA riwayat transaksi dan mereset saldo SEMUA pengguna ke Rp 0. Tindakan ini tidak dapat dibatalkan."
+        );
+        if (!ok) return;
         
-        // Handle file inputs manually
-        if (key === "branding") {
-          const logoInput = ev.currentTarget.querySelector('[name="logo_url"]');
-          const bannerInput = ev.currentTarget.querySelector('[name="banner_url"]');
-          if (logoInput.files[0]) formData.logo_url = await fileToBase64(logoInput.files[0]);
-          else delete formData.logo_url;
-          
-          if (bannerInput.files[0]) formData.banner_url = await fileToBase64(bannerInput.files[0]);
-          else delete formData.banner_url;
-        }
+        const ok2 = await app.confirm(
+          "Apakah Anda SANGAT yakin?",
+          "Data riwayat akan hilang selamanya."
+        );
+        if (!ok2) return;
 
-        await app.api(`/api/admin/settings/${key}`, { method: "PUT", body: formData });
-        app.showToast("Tersimpan", "success");
-        if (key === "branding") loadAll(); // refresh links
-      } catch (err) { app.showToast(err.message, "error"); }
-    });
-  }
-  bindSave("provider-form", "qris_provider");
-  bindSave("fees-form", "fees");
-  bindSave("branding-form", "branding");
+        try {
+          await app.api("/api/admin/reset-platform", { method: "POST" });
+          app.showToast("Platform berhasil direset", "success");
+          loadAll();
+        } catch (err) { app.showToast(err.message, "error"); }
+      });
 
-  loadAll();
-})();
-</script>
+      document.getElementById("wd-rows").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("button[data-act]");
+        if (!btn) return;
+        const tr = btn.closest("tr");
+        const id = tr.dataset.wd;
+        const url = `/api/admin/withdrawals/${id}/${btn.dataset.act}`;
+        try {
+          await app.api(url, { method: "POST" });
+          app.showToast("Diperbarui", "success");
+          loadAll();
+        } catch (err) { app.showToast(err.message, "error"); }
+      });
+
+      document.getElementById("user-rows").addEventListener("click", async (ev) => {
+        const btn = ev.target.closest("button[data-act='delete-user']");
+        if (!btn) return;
+        const tr = btn.closest("tr");
+        const id = tr.dataset.uid;
+        const email = tr.querySelector("td").textContent;
+
+        const yes = await app.confirm(
+          "Hapus Pengguna",
+          `Hapus pengguna <b>${email}</b>? Seluruh riwayat transaksi dan saldo akan ikut terhapus.`,
+          "Ya, Hapus"
+        );
+        if (!yes) return;
+
+        try {
+          await app.api(`/api/admin/users/${id}`, { method: "DELETE" });
+          app.showToast("Pengguna dihapus", "success");
+          loadAll();
+        } catch (err) { app.showToast(err.message, "error"); }
+      });
+
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = error => reject(error);
+        });
+      }
+
+      function bindSave(formId, key) {
+        document.getElementById(formId).addEventListener("submit", async (ev) => {
+          ev.preventDefault();
+          try {
+            const formData = readForm(ev.currentTarget);
+
+            // Handle file inputs manually
+            if (key === "branding") {
+              const logoInput = ev.currentTarget.querySelector('[name="logo_url"]');
+              const bannerInput = ev.currentTarget.querySelector('[name="banner_url"]');
+              if (logoInput.files[0]) formData.logo_url = await fileToBase64(logoInput.files[0]);
+              else delete formData.logo_url;
+
+              if (bannerInput.files[0]) formData.banner_url = await fileToBase64(bannerInput.files[0]);
+              else delete formData.banner_url;
+            }
+
+            await app.api(`/api/admin/settings/${key}`, { method: "PUT", body: formData });
+            app.showToast("Tersimpan", "success");
+            if (key === "branding") loadAll(); // refresh links
+          } catch (err) { app.showToast(err.message, "error"); }
+        });
+      }
+      bindSave("provider-form", "qris_provider");
+      bindSave("fees-form", "fees");
+      bindSave("branding-form", "branding");
+
+      loadAll();
+    })();
+  </script>
 </body>
+
 </html>

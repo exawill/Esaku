@@ -17,6 +17,7 @@ const adminRoutes = require("./routes/admin");
 const dashboardRoutes = require("./routes/dashboard");
 
 const app = express();
+app.disable("x-powered-by");
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 
@@ -29,15 +30,12 @@ app.use(cookieParser());
 app.use(deviceCookie);
 
 // API rate limiter
-app.use(
-  "/api",
-  rateLimit({
-    windowMs: 60 * 1000,
-    max: 120,
-    standardHeaders: true,
-    legacyHeaders: false
-  })
-);
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  message: { error: "Too many requests, please try again later." }
+});
+app.use("/api", apiLimiter);
 
 // Redirect any *.html URL to the clean version (before static so files aren't served directly)
 const HTML_REDIRECT_OVERRIDES = {

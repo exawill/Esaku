@@ -5,7 +5,7 @@ const QRCode = require("qrcode");
 const crypto = require("crypto");
 const { v4: uuid } = require("uuid");
 
-const { query, getSetting } = require("../db");
+const { query, getSetting, now, DB_CLIENT } = require("../db");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -129,6 +129,9 @@ router.get("/", requireAuth, async (req, res) => {
 // Mock "payment" endpoint to mark a QRIS as paid (dev/admin convenience until provider webhook is wired)
 router.post("/:id/mock-pay", requireAuth, async (req, res) => {
   try {
+    if (req.user.role !== "admin" && req.user.role !== "test") {
+      return res.status(403).json({ error: "Only administrators or test users can use the mock payment feature." });
+    }
     if (!req.params.id) return res.status(400).json({ error: "Order ID required" });
     const rows = await query(
       "SELECT * FROM qris_orders WHERE id = ? AND user_id = ?",
@@ -144,8 +147,9 @@ router.post("/:id/mock-pay", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "Order expired" });
     }
     // credit user balance net of platform fee
+    const forUpdate = DB_CLIENT === "mysql" ? " FOR UPDATE" : "";
     const userRows = await query(
-      "SELECT balance FROM users WHERE id = ? FOR UPDATE",
+      `SELECT balance FROM users WHERE id = ?${forUpdate}`,
       [order.user_id]
     );
     const newBalance = Number(userRows[0].balance) + Number(order.net_amount);
@@ -154,7 +158,7 @@ router.post("/:id/mock-pay", requireAuth, async (req, res) => {
       order.user_id
     ]);
     await query(
-      "UPDATE qris_orders SET status='paid', paid_at = NOW() WHERE id = ?",
+      `UPDATE qris_orders SET status='paid', paid_at = ${now()} WHERE id = ?`,
       [order.id]
     );
     await query(
@@ -173,6 +177,20 @@ router.post("/:id/mock-pay", requireAuth, async (req, res) => {
   } catch (err) {
     console.error("[qris] mock-pay error:", err);
     res.status(500).json({ error: "Failed to process payment" });
+  }
+});
+
+router.get("/:id/status", requireAuth, async (req, res) => {
+  try {
+    const rows = await query("SELECT status, paid_at FROM qris_orders WHERE id = ? AND user_id = ?", [
+      req.params.id,
+      req.user.sub
+    ]);
+    if (!rows.length) return res.status(404).json({ error: "Order not found" });
+    res.json({ status: rows[0].status, paid_at: rows[0].paid_at });
+  } catch (err) {
+    console.error("[qris] status check error:", err);
+    res.status(500).json({ error: "Failed to check status" });
   }
 });
 

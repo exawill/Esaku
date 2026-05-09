@@ -1,129 +1,137 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Esaku — Profil</title>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/css/app.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Esaku — Profil</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
+
 <body>
-<div id="app-root"></div>
+  <div id="app-root"></div>
 
-<main class="container">
-  <div class="page-head">
-    <div class="page-eyebrow">Profil</div>
-    <h1 class="page-title">Akun Anda</h1>
-    <p class="page-sub">Perbarui nama dan kata sandi Anda di sini.</p>
-  </div>
+  <main class="container">
+    <div class="page-head">
+      <div class="page-eyebrow">Profil</div>
+      <h1 class="page-title">Akun Anda</h1>
+      <p class="page-sub">Perbarui nama dan kata sandi Anda di sini.</p>
+    </div>
 
-  <div class="grid-2 mt-4" style="margin-bottom:32px">
-    <!-- Identity card -->
-    <div class="card stack" style="gap:16px">
-      <div class="row" style="gap:14px">
-        <div class="user-pill avatar" id="big-avatar" style="width:54px;height:54px;font-size:18px;border-radius:8px"></div>
-        <div>
-          <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em" id="p-name-display">—</div>
-          <div class="text-mid" style="font-size:12px" id="p-email-display">—</div>
-          <div class="row mt-2" style="gap:6px">
-            <span class="pill pill-green" id="p-role-pill">user</span>
-            <span class="pill pill-indigo">Tanpa KYC</span>
+    <div class="grid-2 mt-4" style="margin-bottom:32px">
+      <!-- Identity card -->
+      <div class="card stack" style="gap:16px">
+        <div class="row" style="gap:14px">
+          <div class="user-pill avatar" id="big-avatar" style="width:54px;height:54px;font-size:18px;border-radius:8px">
+          </div>
+          <div>
+            <div style="font-size:17px;font-weight:800;letter-spacing:-0.02em" id="p-name-display">—</div>
+            <div class="text-mid" style="font-size:12px" id="p-email-display">—</div>
+            <div class="row mt-2" style="gap:6px">
+              <span class="pill pill-green" id="p-role-pill">user</span>
+              <span class="pill pill-indigo">Tanpa KYC</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="summary">
-        <div class="summary-row"><span class="l">Saldo</span><span class="v" id="p-balance">—</span></div>
-        <div class="summary-row"><span class="l">Bergabung</span><span class="v" id="p-joined">—</span></div>
-        <div class="summary-row"><span class="l">Login OAuth</span><span class="v" id="p-oauth">—</span></div>
-      </div>
-
-      <form id="profile-form" class="stack" style="gap:12px">
-        <div class="field">
-          <label class="label" for="p-name">Nama Lengkap</label>
-          <input id="p-name" class="input" name="name" type="text"/>
+        <div class="summary">
+          <div class="summary-row"><span class="l">Saldo</span><span class="v" id="p-balance">—</span></div>
+          <div class="summary-row"><span class="l">Bergabung</span><span class="v" id="p-joined">—</span></div>
+          <div class="summary-row"><span class="l">Login OAuth</span><span class="v" id="p-oauth">—</span></div>
         </div>
-        <button type="submit" class="btn btn-dark">Simpan Perubahan</button>
-      </form>
+
+        <form id="profile-form" class="stack" style="gap:12px">
+          <div class="field">
+            <label class="label" for="p-name">Nama Lengkap</label>
+            <input id="p-name" class="input" name="name" type="text" />
+          </div>
+          <button type="submit" class="btn btn-dark">Simpan Perubahan</button>
+        </form>
+      </div>
+
+      <!-- Password -->
+      <div class="card stack" style="gap:16px">
+        <div>
+          <div style="font-weight:700;font-size:15px">Ubah Kata Sandi</div>
+          <div class="text-mid" style="font-size:12px;margin-top:2px">Minimal 8 karakter. Kosongkan kata sandi saat ini
+            jika akun Anda hanya melalui Hostinger OAuth.</div>
+        </div>
+        <form id="password-form" class="stack" style="gap:12px">
+          <div class="field">
+            <label class="label" for="cur">Kata Sandi Saat Ini</label>
+            <input id="cur" class="input" type="password" name="current_password" autocomplete="current-password" />
+          </div>
+          <div class="field">
+            <label class="label" for="np">Kata Sandi Baru</label>
+            <input id="np" class="input" type="password" name="new_password" minlength="8" required
+              autocomplete="new-password" />
+          </div>
+          <button type="submit" class="btn btn-dark">Simpan Kata Sandi</button>
+        </form>
+        <div class="row mt-4" style="gap:6px;justify-content:flex-end">
+          <button id="signout-here" class="btn btn-outline btn-sm">Keluar dari akun</button>
+        </div>
+      </div>
     </div>
+  </main>
 
-    <!-- Password -->
-    <div class="card stack" style="gap:16px">
-      <div>
-        <div style="font-weight:700;font-size:15px">Ubah Kata Sandi</div>
-        <div class="text-mid" style="font-size:12px;margin-top:2px">Minimal 8 karakter. Kosongkan kata sandi saat ini jika akun Anda hanya melalui Hostinger OAuth.</div>
-      </div>
-      <form id="password-form" class="stack" style="gap:12px">
-        <div class="field">
-          <label class="label" for="cur">Kata Sandi Saat Ini</label>
-          <input id="cur" class="input" type="password" name="current_password" autocomplete="current-password"/>
-        </div>
-        <div class="field">
-          <label class="label" for="np">Kata Sandi Baru</label>
-          <input id="np" class="input" type="password" name="new_password" minlength="8" required autocomplete="new-password"/>
-        </div>
-        <button type="submit" class="btn btn-dark">Simpan Kata Sandi</button>
-      </form>
-      <div class="row mt-4" style="gap:6px;justify-content:flex-end">
-        <button id="signout-here" class="btn btn-outline btn-sm">Keluar dari akun</button>
-      </div>
-    </div>
-  </div>
-</main>
+  <footer class="app-foot">© 2026 Esaku · <a href="/">Beranda</a></footer>
 
-<footer class="app-foot">© 2025 Esaku · <a href="/">Beranda</a></footer>
+  <script src="/js/common.js"></script>
+  <script src="/js/shell.js"></script>
+  <script>
+    (async function () {
+      const user = await shell.mount();
+      if (!user) return;
 
-<script src="/js/common.js"></script>
-<script src="/js/shell.js"></script>
-<script>
-(async function () {
-  const user = await shell.mount();
-  if (!user) return;
+      function initials(u) {
+        return (u.name || u.email || "?").split(/\s+|@/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+      }
 
-  function initials(u) {
-    return (u.name || u.email || "?").split(/\s+|@/).map((s) => s[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
-  }
+      try {
+        const me = await app.api("/api/profile");
+        const p = me.profile;
+        document.getElementById("big-avatar").textContent = initials(p);
+        document.getElementById("p-name-display").textContent = p.name || p.email.split("@")[0];
+        document.getElementById("p-email-display").textContent = p.email;
+        document.getElementById("p-role-pill").textContent = p.role;
+        document.getElementById("p-role-pill").className = "pill " + (p.role === "admin" ? "pill-indigo" : "pill-green");
+        document.getElementById("p-balance").textContent = app.formatIDR(p.balance);
+        document.getElementById("p-joined").textContent = app.formatDate(p.created_at);
+        document.getElementById("p-oauth").textContent = p.oauth_provider || "—";
+        document.getElementById("p-name").value = p.name || "";
+      } catch (err) { app.showToast(err.message, "error"); }
 
-  try {
-    const me = await app.api("/api/profile");
-    const p = me.profile;
-    document.getElementById("big-avatar").textContent = initials(p);
-    document.getElementById("p-name-display").textContent = p.name || p.email.split("@")[0];
-    document.getElementById("p-email-display").textContent = p.email;
-    document.getElementById("p-role-pill").textContent = p.role;
-    document.getElementById("p-role-pill").className = "pill " + (p.role === "admin" ? "pill-indigo" : "pill-green");
-    document.getElementById("p-balance").textContent = app.formatIDR(p.balance);
-    document.getElementById("p-joined").textContent = app.formatDate(p.created_at);
-    document.getElementById("p-oauth").textContent = p.oauth_provider || "—";
-    document.getElementById("p-name").value = p.name || "";
-  } catch (err) { app.showToast(err.message, "error"); }
-
-  document.getElementById("profile-form").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const name = document.getElementById("p-name").value.trim();
-    try {
-      await app.api("/api/profile", { method: "PATCH", body: { name } });
-      app.showToast("Profil tersimpan", "success");
-      document.getElementById("p-name-display").textContent = name || (await app.getMe()).email.split("@")[0];
-    } catch (err) { app.showToast(err.message, "error"); }
-  });
-
-  document.getElementById("password-form").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const fd = new FormData(ev.currentTarget);
-    try {
-      await app.api("/api/profile/password", {
-        method: "POST",
-        body: { current_password: fd.get("current_password") || "", new_password: fd.get("new_password") }
+      document.getElementById("profile-form").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const name = document.getElementById("p-name").value.trim();
+        try {
+          await app.api("/api/profile", { method: "PATCH", body: { name } });
+          app.showToast("Profil tersimpan", "success");
+          document.getElementById("p-name-display").textContent = name || (await app.getMe()).email.split("@")[0];
+        } catch (err) { app.showToast(err.message, "error"); }
       });
-      app.showToast("Kata sandi diperbarui", "success");
-      ev.currentTarget.reset();
-    } catch (err) { app.showToast(err.message, "error"); }
-  });
 
-  document.getElementById("signout-here").addEventListener("click", app.signOut);
-})();
-</script>
+      document.getElementById("password-form").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const fd = new FormData(ev.currentTarget);
+        try {
+          await app.api("/api/profile/password", {
+            method: "POST",
+            body: { current_password: fd.get("current_password") || "", new_password: fd.get("new_password") }
+          });
+          app.showToast("Kata sandi diperbarui", "success");
+          ev.currentTarget.reset();
+        } catch (err) { app.showToast(err.message, "error"); }
+      });
+
+      document.getElementById("signout-here").addEventListener("click", app.signOut);
+    })();
+  </script>
 </body>
+
 </html>

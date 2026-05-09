@@ -108,13 +108,25 @@ router.post("/sign-out", (req, res) => {
   res.json({ ok: true });
 });
 
-router.get("/me", requireAuth, async (req, res) => {
-  const rows = await query(
-    "SELECT id, email, name, role, balance FROM users WHERE id = ?",
-    [req.user.sub]
-  );
-  if (!rows.length) return res.status(404).json({ error: "User not found" });
-  res.json({ user: rows[0] });
+router.get("/me", async (req, res) => {
+  const { readToken } = require("../middleware/auth");
+  const { JWT_SECRET } = require("../middleware/auth");
+  const jwt = require("jsonwebtoken");
+  
+  const token = readToken(req);
+  if (!token) return res.json({ user: null });
+  
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    const rows = await query(
+      "SELECT id, email, name, role, balance FROM users WHERE id = ?",
+      [payload.sub]
+    );
+    if (!rows.length) return res.json({ user: null });
+    res.json({ user: rows[0] });
+  } catch (err) {
+    res.json({ user: null });
+  }
 });
 
 // ---- Hostinger OAuth ----

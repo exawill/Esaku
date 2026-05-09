@@ -200,17 +200,6 @@
       </form>
     </div>
 
-    <!-- System Reset (Danger Zone) -->
-    <div class="card mt-4" style="border-color:rgba(255,51,102,0.2)">
-      <div class="row-between">
-        <div>
-          <div style="font-weight:700;font-size:15px;color:var(--red)">Zona Berbahaya: Reset Platform</div>
-          <div class="text-mid" style="font-size:12px;margin-top:2px">Menghapus semua riwayat transaksi, pesanan QRIS, permintaan pencairan, dan mereset semua saldo pengguna ke Rp 0.</div>
-        </div>
-        <button id="reset-platform-btn" class="btn btn-outline text-red">Reset Semua Data</button>
-      </div>
-    </div>
-
     <!-- Users -->
     <div class="card mt-4" style="margin-bottom:32px">
       <div style="font-weight:700;font-size:15px;margin-bottom:14px">Pengguna</div>
@@ -388,26 +377,6 @@
           renderWithdrawals();
         } catch (err) { }
       }
-
-      document.getElementById("reset-platform-btn").addEventListener("click", async () => {
-        const ok = await app.confirm(
-          "Reset Seluruh Platform?",
-          "Ini akan menghapus SEMUA riwayat transaksi dan mereset saldo SEMUA pengguna ke Rp 0. Tindakan ini tidak dapat dibatalkan."
-        );
-        if (!ok) return;
-        
-        const ok2 = await app.confirm(
-          "Apakah Anda SANGAT yakin?",
-          "Data riwayat akan hilang selamanya."
-        );
-        if (!ok2) return;
-
-        try {
-          await app.api("/api/admin/reset-platform", { method: "POST" });
-          app.showToast("Platform berhasil direset", "success");
-          loadAll();
-        } catch (err) { app.showToast(err.message, "error"); }
-      });
 
       document.getElementById("wd-rows").addEventListener("click", async (ev) => {
         const btn = ev.target.closest("button[data-act]");

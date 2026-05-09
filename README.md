@@ -127,8 +127,5 @@ strips the extension).
 
 - The bundled "internal" QRIS generator is a placeholder payload string suitable
   for development. Switch to a real provider in the Admin CMS before going live.
-- **Real-time Confirmation**: The QRIS page polls the backend status and automatically updates to a success state with a checkmark and audible notification upon payment.
-- **Test Role**: A `test` role is available for accounts that need to use developer tools (like `mock-pay`) without full administrative access.
-- **System Reset**: Administrators can perform a full platform reset (clearing all transactions and zeroing balances) through the "Danger Zone" in the CMS.
-- **Advanced Analytics**: The Admin CMS includes unified time-series charts for revenue and platform-wide activity tracking.
-- Mock-pay endpoint (`POST /api/qris/:id/mock-pay`) is restricted to **admin** and **test** roles only.
+- Mock-pay endpoint (`POST /api/qris/:id/mock-pay`) is included for local testing
+  only; remove or guard before production.

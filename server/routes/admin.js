@@ -202,4 +202,20 @@ router.delete("/users/:id", async (req, res) => {
   }
 });
 
+router.post("/reset-platform", async (req, res) => {
+  try {
+    // Clear all history
+    await query("DELETE FROM transactions");
+    await query("DELETE FROM qris_orders");
+    await query("DELETE FROM withdrawals");
+    // Reset all balances
+    await query("UPDATE users SET balance = 0");
+    
+    res.json({ ok: true, message: "Platform data has been reset successfully." });
+  } catch (err) {
+    console.error("[admin] platform reset error:", err);
+    res.status(500).json({ error: "Failed to reset platform data" });
+  }
+});
+
 module.exports = router;

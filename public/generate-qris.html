@@ -242,6 +242,7 @@
         try {
           const res = await app.api(`/api/qris/${activeOrder.id}/mock-pay`, { method: "POST" });
           app.showToast(`Dibayar — saldo: ${app.formatIDR(res.balance)}`, "success");
+          if (window.shell && shell.pingNotification) shell.pingNotification();
         } catch (err) { app.showToast(err.message, "error"); }
       });
     })();

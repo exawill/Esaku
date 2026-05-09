@@ -78,9 +78,9 @@
       </div>
 
       <div class="summary" id="wd-summary">
-        <div class="summary-row"><span class="l">Nominal</span><span class="v" id="s-amt">Rp 0</span></div>
+        <div class="summary-row"><span class="l">Nominal Penarikan</span><span class="v" id="s-amt">Rp 0</span></div>
         <div class="summary-row"><span class="l">Biaya Transfer</span><span class="v" id="s-fee">Rp 2.500</span></div>
-        <div class="summary-row danger"><span class="l">Total Dipotong</span><span class="v" id="s-total">Rp 2.500</span></div>
+        <div class="summary-row net"><span class="l">Total Diterima</span><span class="v" id="s-total">Rp 0</span></div>
         <div class="summary-row"><span class="l">Estimasi Proses</span><span class="v">1×24 jam kerja</span></div>
       </div>
 
@@ -143,15 +143,15 @@
     const fee = method === "ewallet" ? fees.ewallet : fees.bank;
     document.getElementById("s-amt").textContent = app.formatIDR(n);
     document.getElementById("s-fee").textContent = app.formatIDR(fee);
-    document.getElementById("s-total").textContent = app.formatIDR(n + fee);
+    document.getElementById("s-total").textContent = app.formatIDR(Math.max(0, n - fee));
 
-    const valid = n >= fees.min && n <= weeklyMax && (n + fee) <= balance;
+    const valid = n >= fees.min && n <= weeklyMax && n <= balance;
     document.getElementById("submit-btn").disabled = !valid;
     const hint = document.getElementById("wd-hint");
     if (n === 0) hint.textContent = "Min. " + app.formatIDR(fees.min);
     else if (n < fees.min) hint.textContent = "Min. " + app.formatIDR(fees.min);
     else if (n > weeklyMax) hint.textContent = "Maks. " + app.formatIDR(weeklyMax) + "/minggu";
-    else if (n + fee > balance) hint.textContent = "Saldo tidak cukup (termasuk biaya)";
+    else if (n > balance) hint.textContent = "Saldo tidak cukup";
     else hint.textContent = "Nominal valid";
     hint.classList.toggle("error", n > 0 && !valid);
   }
@@ -168,8 +168,7 @@
     recalc();
   }));
   document.getElementById("quick-max").addEventListener("click", () => {
-    const fee = method === "ewallet" ? fees.ewallet : fees.bank;
-    const cap = Math.min(weeklyMax, Math.max(0, balance - fee));
+    const cap = Math.min(weeklyMax, Math.max(0, balance));
     document.getElementById("wd-amt").value = cap ? cap.toLocaleString("id-ID") : "";
     recalc();
   });

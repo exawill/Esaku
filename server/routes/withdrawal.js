@@ -9,14 +9,19 @@ const { requireAuth } = require("../middleware/auth");
 const router = express.Router();
 
 router.get("/quote", requireAuth, async (req, res) => {
-  const fees = await getSetting("fees");
-  res.json({
-    fees: {
-      bank: Number(fees.withdrawal_bank_fee_idr || 6500),
-      ewallet: Number(fees.withdrawal_ewallet_fee_idr || 2500),
-      min: Number(fees.withdrawal_min_idr || 50000)
-    }
-  });
+  try {
+    const fees = await getSetting("fees");
+    res.json({
+      fees: {
+        bank: Number(fees?.withdrawal_bank_fee_idr || 6500),
+        ewallet: Number(fees?.withdrawal_ewallet_fee_idr || 2500),
+        min: Number(fees?.withdrawal_min_idr || 50000)
+      }
+    });
+  } catch (err) {
+    console.error("[withdrawal] quote error:", err);
+    res.status(500).json({ error: "Failed to load fees" });
+  }
 });
 
 router.post("/", requireAuth, async (req, res) => {
@@ -40,7 +45,12 @@ router.post("/", requireAuth, async (req, res) => {
       method === "bank"
         ? Number(fees.withdrawal_bank_fee_idr || 6500)
         : Number(fees.withdrawal_ewallet_fee_idr || 2500);
-    const totalDebit = amt + fee;
+    const totalDebit = amt;
+    const netAmount = amt - fee;
+    
+    if (netAmount <= 0) {
+      return res.status(400).json({ error: "Nominal pencairan tidak cukup untuk membayar biaya transfer" });
+    }
 
     const userRows = await query("SELECT balance FROM users WHERE id = ?", [
       req.user.sub
@@ -48,7 +58,7 @@ router.post("/", requireAuth, async (req, res) => {
     const balance = Number(userRows[0]?.balance || 0);
     if (balance < totalDebit) {
       return res.status(400).json({
-        error: `Insufficient balance. You need IDR ${totalDebit.toLocaleString("id-ID")} (amount + fee)`
+        error: `Insufficient balance. You need IDR ${totalDebit.toLocaleString("id-ID")}`
       });
     }
     const newBalance = balance - totalDebit;
@@ -60,7 +70,7 @@ router.post("/", requireAuth, async (req, res) => {
     await query(
       `INSERT INTO withdrawals (id, user_id, method, destination, amount, fee, total_debit, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')`,
-      [id, req.user.sub, method, destination, amt, fee, totalDebit]
+      [id, req.user.sub, method, destination, netAmount, fee, totalDebit]
     );
     await query(
       `INSERT INTO transactions (id, user_id, type, amount, balance_after, reference, description)
@@ -76,7 +86,7 @@ router.post("/", requireAuth, async (req, res) => {
     );
     res.json({
       ok: true,
-      withdrawal: { id, amount: amt, fee, total_debit: totalDebit, status: "pending" },
+      withdrawal: { id, amount: netAmount, fee, total_debit: totalDebit, status: "pending" },
       balance: newBalance
     });
   } catch (err) {
@@ -86,12 +96,17 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 router.get("/", requireAuth, async (req, res) => {
-  const rows = await query(
-    `SELECT id, method, destination, amount, fee, total_debit, status, created_at, completed_at
-     FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
-    [req.user.sub]
-  );
-  res.json({ withdrawals: rows });
+  try {
+    const rows = await query(
+      `SELECT id, method, destination, amount, fee, total_debit, status, created_at, completed_at
+       FROM withdrawals WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
+      [req.user.sub]
+    );
+    res.json({ withdrawals: rows });
+  } catch (err) {
+    console.error("[withdrawal] fetch error:", err);
+    res.status(500).json({ error: "Failed to load withdrawals" });
+  }
 });
 
 module.exports = router;

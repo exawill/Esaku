@@ -1,220 +1,251 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Esaku — Buat QRIS</title>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/css/app.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Esaku — Buat QRIS</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
+
 <body>
-<div id="app-root"></div>
+  <div id="app-root"></div>
 
-<main class="container">
-  <div class="page-head">
-    <div class="page-eyebrow">Buat QRIS</div>
-    <h1 class="page-title">Generate QRIS Pembayaran</h1>
-    <p class="page-sub">Masukkan nominal, klik buat, lalu tampilkan QR ke pelanggan. Berlaku 15 menit.</p>
-  </div>
+  <main class="container">
+    <div class="page-head">
+      <div class="page-eyebrow">Buat QRIS</div>
+      <h1 class="page-title">Generate QRIS Pembayaran</h1>
+      <p class="page-sub">Masukkan nominal, klik buat, lalu tampilkan QR ke pelanggan. Berlaku 15 menit.</p>
+    </div>
 
-  <div class="grid-2 mt-4" style="margin-bottom:32px">
-    <!-- Form -->
-    <div class="card stack" style="gap:18px">
-      <div class="field">
-        <label class="label" for="amt">Nominal Pembayaran</label>
-        <div class="field-input lg">
-          <span class="px">Rp</span>
-          <input id="amt" type="text" inputmode="numeric" placeholder="0" oninput="onAmt(this)"/>
+    <div class="grid-2 mt-4" style="margin-bottom:32px">
+      <!-- Form -->
+      <div class="card stack" style="gap:18px">
+        <div class="field">
+          <label class="label" for="amt">Nominal Pembayaran</label>
+          <div class="field-input lg">
+            <span class="px">Rp</span>
+            <input id="amt" type="text" inputmode="numeric" placeholder="0" oninput="onAmt(this)" />
+          </div>
+          <span class="hint" id="amt-hint">Min. Rp 1.000</span>
         </div>
-        <span class="hint" id="amt-hint">Min. Rp 1.000</span>
-      </div>
 
-      <div class="field">
-        <span class="label">Nominal Cepat</span>
-        <div class="chip-row" id="quickAmounts">
-          <button class="chip" data-amt="10000">10K</button>
-          <button class="chip" data-amt="25000">25K</button>
-          <button class="chip" data-amt="50000">50K</button>
-          <button class="chip" data-amt="100000">100K</button>
-          <button class="chip" data-amt="250000">250K</button>
+        <div class="field">
+          <span class="label">Nominal Cepat</span>
+          <div class="chip-row" id="quickAmounts">
+            <button class="chip" data-amt="10000">10K</button>
+            <button class="chip" data-amt="25000">25K</button>
+            <button class="chip" data-amt="50000">50K</button>
+            <button class="chip" data-amt="100000">100K</button>
+            <button class="chip" data-amt="250000">250K</button>
+          </div>
+        </div>
+
+        <div class="summary" id="preview-summary" style="display:none">
+          <div class="summary-row"><span class="l">Pembeli Bayar</span><span class="v" id="p-buyer">—</span></div>
+          <div class="summary-row"><span class="l">MDR 0,7%</span><span class="v" id="p-fee">—</span></div>
+          <div class="summary-row net"><span class="l">Anda Terima</span><span class="v" id="p-net">—</span></div>
+        </div>
+
+        <div class="row" style="gap:8px">
+          <button id="generate-btn" class="btn btn-dark" style="flex:1" disabled>Buat QRIS Pembayaran →</button>
+          <button id="reset-btn" class="btn btn-outline" type="button">Reset</button>
         </div>
       </div>
 
-      <div class="summary" id="preview-summary" style="display:none">
-        <div class="summary-row"><span class="l">Pembeli Bayar</span><span class="v" id="p-buyer">—</span></div>
-        <div class="summary-row"><span class="l">MDR 0,7%</span><span class="v" id="p-fee">—</span></div>
-        <div class="summary-row net"><span class="l">Anda Terima</span><span class="v" id="p-net">—</span></div>
-      </div>
+      <!-- QRIS card -->
+      <div class="qris-card" id="qris-card">
+        <div class="row-between" style="align-items:flex-start">
+          <div>
+            <div class="label">Merchant</div>
+            <div class="biz" id="biz-name">—</div>
+            <div class="mid" id="biz-id">—</div>
+          </div>
+          <div style="text-align:center" id="timer-box">
+            <div style="font-size:13px;font-weight:800;color:#4ade80;font-family:'DM Mono',monospace" id="timer">--:--
+            </div>
+            <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Tersisa
+            </div>
+          </div>
+        </div>
 
-      <div class="row" style="gap:8px">
-        <button id="generate-btn" class="btn btn-dark" style="flex:1" disabled>Buat QRIS Pembayaran →</button>
-        <button id="reset-btn" class="btn btn-outline" type="button">Reset</button>
+        <div style="text-align:center">
+          <div class="label">Nominal</div>
+          <div style="font-size:26px;font-weight:800;letter-spacing:-0.03em;margin-top:4px;line-height:1"
+            id="shown-amount">Rp 0</div>
+          <div id="shown-mdr"
+            style="font-size:11px;color:var(--green);margin-top:6px;font-weight:600;text-shadow:0 0 10px var(--green-lt);">
+          </div>
+        </div>
+
+        <div class="qr-square" id="qr-host">
+          <div style="text-align:center;color:var(--ink-lt);font-size:12px">Belum ada QRIS aktif.</div>
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-size:10px;color:#666" id="qr-ref">—</div>
+          <div style="font-size:10px;color:#666;margin-top:3px">Scan dengan GoPay · OVO · DANA · ShopeePay · Bank</div>
+        </div>
+
+        <div class="footstrip" id="footstrip">
+          <span>QRIS · MDR 0,7% DITANGGUNG PEMBELI</span>
+          <span class="r">Esaku</span>
+        </div>
       </div>
     </div>
 
-    <!-- QRIS card -->
-    <div class="qris-card" id="qris-card">
-      <div class="row-between" style="align-items:flex-start">
+    <div class="card" id="actions-card" style="display:none;margin-bottom:32px">
+      <div class="row-between">
         <div>
-          <div class="label">Merchant</div>
-          <div class="biz" id="biz-name">—</div>
-          <div class="mid" id="biz-id">—</div>
+          <div style="font-weight:700;font-size:13px">Aksi</div>
+          <div class="text-mid" style="font-size:12px">Untuk pengembangan: tandai QRIS sebagai dibayar untuk menambah
+            saldo dummy.</div>
         </div>
-        <div style="text-align:center" id="timer-box">
-          <div style="font-size:13px;font-weight:800;color:#4ade80;font-family:'DM Mono',monospace" id="timer">--:--</div>
-          <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Tersisa</div>
+        <div class="row" style="gap:8px">
+          <button id="copy-btn" class="btn btn-outline">Salin Payload</button>
+          <button id="mock-btn" class="btn btn-indigo">Tandai Dibayar (dev)</button>
         </div>
-      </div>
-
-      <div style="text-align:center">
-        <div class="label">Nominal</div>
-        <div style="font-size:26px;font-weight:800;letter-spacing:-0.03em;margin-top:4px;line-height:1" id="shown-amount">Rp 0</div>
-      </div>
-
-      <div class="qr-square" id="qr-host">
-        <div style="text-align:center;color:var(--ink-lt);font-size:12px">Belum ada QRIS aktif.</div>
-      </div>
-
-      <div style="text-align:center">
-        <div style="font-size:10px;color:#666" id="qr-ref">—</div>
-        <div style="font-size:10px;color:#666;margin-top:3px">Scan dengan GoPay · OVO · DANA · ShopeePay · Bank</div>
-      </div>
-
-      <div class="footstrip" id="footstrip">
-        <span>QRIS · MDR 0,7% DITANGGUNG PEMBELI</span>
-        <span class="r">esaku.id</span>
       </div>
     </div>
-  </div>
+  </main>
 
-  <div class="card" id="actions-card" style="display:none;margin-bottom:32px">
-    <div class="row-between">
-      <div>
-        <div style="font-weight:700;font-size:13px">Aksi</div>
-        <div class="text-mid" style="font-size:12px">Untuk pengembangan: tandai QRIS sebagai dibayar untuk menambah saldo dummy.</div>
-      </div>
-      <div class="row" style="gap:8px">
-        <button id="copy-btn" class="btn btn-outline">Salin Payload</button>
-        <button id="mock-btn" class="btn btn-indigo">Tandai Dibayar (dev)</button>
-      </div>
-    </div>
-  </div>
-</main>
+  <footer class="app-foot">© 2025 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
 
-<footer class="app-foot">© 2025 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
+  <script src="/js/common.js"></script>
+  <script src="/js/shell.js"></script>
+  <script>
+    (async function () {
+      const user = await shell.mount();
+      if (!user) return;
+      document.getElementById("biz-name").textContent = user.name || user.email;
+      document.getElementById("biz-id").textContent = user.email;
 
-<script src="/js/common.js"></script>
-<script src="/js/shell.js"></script>
-<script>
-(async function () {
-  const user = await shell.mount();
-  if (!user) return;
-  document.getElementById("biz-name").textContent = user.name || user.email;
-  document.getElementById("biz-id").textContent = user.email;
+      let activeOrder = null;
+      let timerHandle = null;
 
-  let activeOrder = null;
-  let timerHandle = null;
-
-  function setSummary(n) {
-    const wrap = document.getElementById("preview-summary");
-    if (n < 1000) { wrap.style.display = "none"; return; }
-    wrap.style.display = "";
-    const fee = Math.round(n * 0.007);
-    document.getElementById("p-buyer").textContent = app.formatIDR(n + fee);
-    document.getElementById("p-fee").textContent = app.formatIDR(fee);
-    document.getElementById("p-net").textContent = app.formatIDR(n);
-  }
-
-  function onAmt(el) {
-    const n = app.unFmt(el.value);
-    el.value = n ? n.toLocaleString("id-ID") : "";
-    setSummary(n);
-    document.getElementById("amt-hint").textContent =
-      n === 0 ? "Min. Rp 1.000" :
-      n < 1000 ? "Min. Rp 1.000" : "Siap dibuat";
-    document.getElementById("amt-hint").classList.toggle("error", n > 0 && n < 1000);
-    document.getElementById("generate-btn").disabled = n < 1000;
-    document.querySelectorAll("#quickAmounts .chip").forEach((b) =>
-      b.classList.toggle("is-active", Number(b.dataset.amt) === n));
-  }
-  window.onAmt = onAmt;
-
-  document.querySelectorAll("#quickAmounts .chip").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.getElementById("amt").value = Number(btn.dataset.amt).toLocaleString("id-ID");
-      onAmt(document.getElementById("amt"));
-    });
-  });
-
-  document.getElementById("reset-btn").addEventListener("click", () => {
-    document.getElementById("amt").value = "";
-    onAmt(document.getElementById("amt"));
-  });
-
-  function startTimer(expiresAt) {
-    clearInterval(timerHandle);
-    const expires = new Date(expiresAt).getTime();
-    const elT = document.getElementById("timer");
-    function tick() {
-      const remain = Math.max(0, Math.floor((expires - Date.now()) / 1000));
-      const m = String(Math.floor(remain / 60)).padStart(2, "0");
-      const s = String(remain % 60).padStart(2, "0");
-      elT.textContent = m + ":" + s;
-      if (remain <= 0) {
-        clearInterval(timerHandle);
-        document.getElementById("footstrip").classList.add("expired");
-        document.getElementById("footstrip").firstElementChild.textContent = "QRIS KADALUARSA";
+      function setSummary(n) {
+        const wrap = document.getElementById("preview-summary");
+        if (n < 1000) { wrap.style.display = "none"; return; }
+        wrap.style.display = "";
+        const fee = Math.round(n * 0.007);
+        document.getElementById("p-buyer").textContent = app.formatIDR(n + fee);
+        document.getElementById("p-fee").textContent = app.formatIDR(fee);
+        document.getElementById("p-net").textContent = app.formatIDR(n);
       }
-    }
-    tick();
-    timerHandle = setInterval(tick, 1000);
-  }
 
-  function showOrder(order) {
-    activeOrder = order;
-    document.getElementById("shown-amount").textContent = app.formatIDR(order.amount);
-    document.getElementById("qr-ref").textContent = order.reference;
-    document.getElementById("qr-host").innerHTML = `<img src="${order.qr_image}" alt="QRIS"/>`;
-    document.getElementById("footstrip").classList.remove("expired");
-    document.getElementById("footstrip").firstElementChild.textContent = "QRIS · MDR 0,7% DITANGGUNG PEMBELI";
-    document.getElementById("actions-card").style.display = "";
-    startTimer(order.expires_at);
-  }
+      function onAmt(el) {
+        const n = app.unFmt(el.value);
+        el.value = n ? n.toLocaleString("id-ID") : "";
+        setSummary(n);
+        document.getElementById("amt-hint").textContent =
+          n === 0 ? "Min. Rp 1.000" :
+            n < 1000 ? "Min. Rp 1.000" : "Siap dibuat";
+        document.getElementById("amt-hint").classList.toggle("error", n > 0 && n < 1000);
+        document.getElementById("generate-btn").disabled = n < 1000;
+        document.querySelectorAll("#quickAmounts .chip").forEach((b) =>
+          b.classList.toggle("is-active", Number(b.dataset.amt) === n));
+      }
+      window.onAmt = onAmt;
 
-  document.getElementById("generate-btn").addEventListener("click", async () => {
-    const amount = app.unFmt(document.getElementById("amt").value);
-    if (amount < 1000) return;
-    const btn = document.getElementById("generate-btn");
-    btn.disabled = true; btn.textContent = "Memproses...";
-    try {
-      const res = await app.api("/api/qris", { method: "POST", body: { amount } });
-      showOrder(res.order);
-      app.showToast("QRIS dibuat", "success");
-    } catch (err) {
-      app.showToast(err.message, "error");
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Buat QRIS Pembayaran →";
-    }
-  });
+      document.querySelectorAll("#quickAmounts .chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document.getElementById("amt").value = Number(btn.dataset.amt).toLocaleString("id-ID");
+          onAmt(document.getElementById("amt"));
+        });
+      });
 
-  document.getElementById("copy-btn").addEventListener("click", async () => {
-    if (!activeOrder) return;
-    try {
-      await navigator.clipboard.writeText(activeOrder.qr_payload);
-      app.showToast("Payload disalin", "success");
-    } catch (e) { app.showToast("Gagal menyalin", "error"); }
-  });
+      document.getElementById("reset-btn").addEventListener("click", () => {
+        document.getElementById("amt").value = "";
+        onAmt(document.getElementById("amt"));
+        // Reset QR code
+        document.getElementById("qr-host").innerHTML = '<div style="text-align:center;color:var(--ink-lt);font-size:12px">Belum ada QRIS aktif.</div>';
+        // Reset amount display and MDR
+        document.getElementById("shown-amount").textContent = "Rp 0";
+        document.getElementById("shown-mdr").textContent = "";
+        // Reset reference
+        document.getElementById("qr-ref").textContent = "—";
+        // Reset timer
+        clearInterval(timerHandle);
+        timerHandle = null;
+        document.getElementById("timer").textContent = "--:--";
+        // Reset footstrip
+        document.getElementById("footstrip").classList.remove("expired");
+        document.getElementById("footstrip").firstElementChild.textContent = "QRIS · MDR 0,7% DITANGGUNG PEMBELI";
+        // Hide actions card
+        document.getElementById("actions-card").style.display = "none";
+        // Clear active order
+        activeOrder = null;
+      });
 
-  document.getElementById("mock-btn").addEventListener("click", async () => {
-    if (!activeOrder) return;
-    try {
-      const res = await app.api(`/api/qris/${activeOrder.id}/mock-pay`, { method: "POST" });
-      app.showToast(`Dibayar — saldo: ${app.formatIDR(res.balance)}`, "success");
-    } catch (err) { app.showToast(err.message, "error"); }
-  });
-})();
-</script>
+      function startTimer(expiresAt) {
+        clearInterval(timerHandle);
+        const expires = new Date(expiresAt).getTime();
+        const elT = document.getElementById("timer");
+        function tick() {
+          const remain = Math.max(0, Math.floor((expires - Date.now()) / 1000));
+          const m = String(Math.floor(remain / 60)).padStart(2, "0");
+          const s = String(remain % 60).padStart(2, "0");
+          elT.textContent = m + ":" + s;
+          if (remain <= 0) {
+            clearInterval(timerHandle);
+            document.getElementById("footstrip").classList.add("expired");
+            document.getElementById("footstrip").firstElementChild.textContent = "QRIS KADALUARSA";
+          }
+        }
+        tick();
+        timerHandle = setInterval(tick, 1000);
+      }
+
+      function showOrder(order) {
+        activeOrder = order;
+        document.getElementById("shown-amount").textContent = app.formatIDR(order.amount);
+        document.getElementById("shown-mdr").textContent = `(termasuk MDR ${app.formatIDR(order.fee)})`;
+        document.getElementById("qr-ref").textContent = order.reference;
+        document.getElementById("qr-host").innerHTML = `<img src="${order.qr_image}" alt="QRIS"/>`;
+        document.getElementById("footstrip").classList.remove("expired");
+        document.getElementById("footstrip").firstElementChild.textContent = "QRIS · MDR 0,7% DITANGGUNG PEMBELI";
+        document.getElementById("actions-card").style.display = "";
+        startTimer(order.expires_at);
+      }
+
+      document.getElementById("generate-btn").addEventListener("click", async () => {
+        const amount = app.unFmt(document.getElementById("amt").value);
+        if (amount < 1000) return;
+        const btn = document.getElementById("generate-btn");
+        btn.disabled = true; btn.textContent = "Memproses...";
+        try {
+          const res = await app.api("/api/qris", { method: "POST", body: { amount } });
+          showOrder(res.order);
+          app.showToast("QRIS dibuat", "success");
+        } catch (err) {
+          app.showToast(err.message, "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Buat QRIS Pembayaran →";
+        }
+      });
+
+      document.getElementById("copy-btn").addEventListener("click", async () => {
+        if (!activeOrder) return;
+        try {
+          await navigator.clipboard.writeText(activeOrder.qr_payload);
+          app.showToast("Payload disalin", "success");
+        } catch (e) { app.showToast("Gagal menyalin", "error"); }
+      });
+
+      document.getElementById("mock-btn").addEventListener("click", async () => {
+        if (!activeOrder) return;
+        try {
+          const res = await app.api(`/api/qris/${activeOrder.id}/mock-pay`, { method: "POST" });
+          app.showToast(`Dibayar — saldo: ${app.formatIDR(res.balance)}`, "success");
+        } catch (err) { app.showToast(err.message, "error"); }
+      });
+    })();
+  </script>
 </body>
+
 </html>

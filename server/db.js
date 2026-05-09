@@ -1,28 +1,151 @@
 "use strict";
 
-const mysql = require("mysql2/promise");
-const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const { v4: uuid } = require("uuid");
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "esaku",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  decimalNumbers: true
-});
+const DB_CLIENT = process.env.DB_CLIENT || (process.env.DB_HOST ? "mysql" : "sqlite");
+const DB_FILE = process.env.DB_FILE || path.join(__dirname, "..", "data", "esaku.sqlite");
 
-async function query(sql, params = []) {
-  const [rows] = await pool.execute(sql, params);
-  return rows;
+let pool = null;
+let sqliteDb = null;
+
+function ensureDataDirectory() {
+  if (DB_CLIENT !== "sqlite") return;
+  const dir = path.dirname(DB_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
-const SCHEMA_STATEMENTS = [
+async function createSqliteConnection() {
+  ensureDataDirectory();
+  const sqlite3 = require("sqlite3").verbose();
+  sqliteDb = new sqlite3.Database(DB_FILE);
+  await runSqlite("PRAGMA foreign_keys = ON");
+}
+
+async function runSqlite(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    sqliteDb.run(sql, params, function (err) {
+      if (err) return reject(err);
+      resolve(this);
+    });
+  });
+}
+
+async function allSqlite(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    sqliteDb.all(sql, params, (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+}
+
+async function query(sql, params = []) {
+  if (DB_CLIENT === "mysql") {
+    const [rows] = await pool.execute(sql, params);
+    return rows;
+  }
+
+  const trimmed = sql.trim().toUpperCase();
+  if (trimmed.startsWith("SELECT") || trimmed.startsWith("PRAGMA") || trimmed.startsWith("WITH")) {
+    return await allSqlite(sql, params);
+  }
+
+  await runSqlite(sql, params);
+  return [];
+}
+
+function createMysqlPool() {
+  const mysql = require("mysql2/promise");
+  return mysql.createPool({
+    host: process.env.DB_HOST || "localhost",
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "",
+    database: process.env.DB_NAME || "esaku",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    decimalNumbers: true
+  });
+}
+
+const SQLITE_SCHEMA_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT,
+    name TEXT,
+    role TEXT NOT NULL DEFAULT 'user',
+    balance NUMERIC NOT NULL DEFAULT 0,
+    oauth_provider TEXT,
+    oauth_subject TEXT,
+    device_id TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS qris_orders (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    fee NUMERIC NOT NULL DEFAULT 0,
+    net_amount NUMERIC NOT NULL DEFAULT 0,
+    reference TEXT UNIQUE NOT NULL,
+    qr_payload TEXT NOT NULL,
+    qr_image TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    expires_at TEXT NOT NULL,
+    paid_at TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_qris_user ON qris_orders (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_qris_status ON qris_orders (status)`,
+
+  `CREATE TABLE IF NOT EXISTS withdrawals (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    method TEXT NOT NULL,
+    destination TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    fee NUMERIC NOT NULL,
+    total_debit NUMERIC NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    note TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    completed_at TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_wd_user ON withdrawals (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_wd_status ON withdrawals (status)`,
+
+  `CREATE TABLE IF NOT EXISTS transactions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    balance_after NUMERIC NOT NULL,
+    reference TEXT,
+    description TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_tx_user_created ON transactions (user_id, created_at)`,
+
+  `CREATE TABLE IF NOT EXISTS cms_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+  )`
+];
+
+const MYSQL_SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS users (
     id CHAR(36) PRIMARY KEY,
     email VARCHAR(190) UNIQUE NOT NULL,
@@ -32,6 +155,7 @@ const SCHEMA_STATEMENTS = [
     balance DECIMAL(18,2) NOT NULL DEFAULT 0,
     oauth_provider VARCHAR(40) NULL,
     oauth_subject VARCHAR(190) NULL,
+    device_id VARCHAR(64) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
@@ -85,7 +209,7 @@ const SCHEMA_STATEMENTS = [
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
 
   `CREATE TABLE IF NOT EXISTS cms_settings (
-    \`key\` VARCHAR(100) PRIMARY KEY,
+    key VARCHAR(100) PRIMARY KEY,
     value JSON NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`
@@ -94,6 +218,7 @@ const SCHEMA_STATEMENTS = [
 const DEFAULT_SETTINGS = {
   qris_provider: {
     provider: "internal",
+    api_type: "snap",
     api_base_url: "",
     api_key: "",
     merchant_id: "",
@@ -112,9 +237,6 @@ const DEFAULT_SETTINGS = {
   }
 };
 
-// Column-level migrations applied after the base CREATE TABLEs. Each entry
-// adds a column if it is not already present. Schema-evolution lives here
-// so older deployments stay forward-compatible.
 const COLUMN_MIGRATIONS = [
   {
     table: "users",
@@ -124,47 +246,78 @@ const COLUMN_MIGRATIONS = [
   }
 ];
 
-async function applyColumnMigrations() {
-  for (const m of COLUMN_MIGRATIONS) {
+async function columnExists(table, column) {
+  if (DB_CLIENT === "mysql") {
     const cols = await query(
       "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
-      [m.table, m.column]
+      [table, column]
     );
-    if (!cols.length) {
+    return cols.length > 0;
+  }
+
+  if (!sqliteDb) return false;
+  const cols = await query(`PRAGMA table_info(${table})`);
+  return cols.some((row) => row.name === column);
+}
+
+async function indexExists(table, indexName) {
+  if (DB_CLIENT === "mysql") {
+    const idx = await query(
+      "SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?",
+      [table, indexName]
+    );
+    return idx.length > 0;
+  }
+
+  if (!sqliteDb) return false;
+  const idx = await query(`PRAGMA index_list(${table})`);
+  return idx.some((row) => row.name === indexName);
+}
+
+async function applyColumnMigrations() {
+  for (const m of COLUMN_MIGRATIONS) {
+    const exists = await columnExists(m.table, m.column);
+    if (!exists) {
       await query(m.ddl);
     }
     if (m.index) {
-      const idx = await query(
-        "SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_NAME = ?",
-        [m.table, m.index.name]
-      );
-      if (!idx.length) {
+      const hasIndex = await indexExists(m.table, m.index.name);
+      if (!hasIndex) {
         await query(m.index.ddl);
       }
     }
   }
 }
 
-async function ensureSchema() {
-  // If DB env not configured, skip silently and let routes return graceful errors.
-  if (!process.env.DB_HOST) {
-    console.warn("[esaku] DB_HOST not set; skipping schema bootstrap");
-    return;
+async function initDb() {
+  if (DB_CLIENT === "mysql") {
+    pool = createMysqlPool();
+  } else {
+    await createSqliteConnection();
   }
-  for (const stmt of SCHEMA_STATEMENTS) {
+}
+
+async function ensureSchema() {
+  await initDb();
+
+  const statements = DB_CLIENT === "mysql" ? MYSQL_SCHEMA_STATEMENTS : SQLITE_SCHEMA_STATEMENTS;
+  for (const stmt of statements) {
     await query(stmt);
   }
+
   await applyColumnMigrations();
+
   for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
-    await query(
-      "INSERT IGNORE INTO cms_settings (`key`, value) VALUES (?, ?)",
-      [key, JSON.stringify(value)]
-    );
+    const insertStatement =
+      DB_CLIENT === "mysql"
+        ? "INSERT IGNORE INTO cms_settings (key, value) VALUES (?, ?)"
+        : "INSERT OR IGNORE INTO cms_settings (key, value) VALUES (?, ?)";
+    await query(insertStatement, [key, JSON.stringify(value)]);
   }
 }
 
 async function ensureAdminUser() {
-  if (!process.env.DB_HOST) return;
+  await initDb();
   const email = process.env.ADMIN_EMAIL || "Admin@esaku.xyz";
   const adminPassword = process.env.ADMIN_PASSWORD || "1234567890";
   const hash = await bcrypt.hash(adminPassword, 10);
@@ -182,27 +335,47 @@ async function ensureAdminUser() {
 }
 
 async function getSetting(key) {
-  const rows = await query("SELECT value FROM cms_settings WHERE `key` = ?", [
-    key
-  ]);
+  await initDb();
+  const rows = await query("SELECT value FROM cms_settings WHERE key = ?", [key]);
   if (!rows.length) return DEFAULT_SETTINGS[key] || null;
   const raw = rows[0].value;
   return typeof raw === "string" ? JSON.parse(raw) : raw;
 }
 
 async function setSetting(key, value) {
-  await query(
-    "INSERT INTO cms_settings (`key`, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)",
-    [key, JSON.stringify(value)]
-  );
+  await initDb();
+  if (DB_CLIENT === "mysql") {
+    await query(
+      "INSERT INTO cms_settings (key, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)",
+      [key, JSON.stringify(value)]
+    );
+  } else {
+    await query(
+      "INSERT INTO cms_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+      [key, JSON.stringify(value)]
+    );
+  }
+}
+
+async function closeDb() {
+  if (DB_CLIENT === "mysql" && pool) {
+    await pool.end();
+  } else if (sqliteDb) {
+    return new Promise((resolve, reject) => {
+      sqliteDb.close((err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+  }
 }
 
 module.exports = {
-  pool,
   query,
   ensureSchema,
   ensureAdminUser,
   getSetting,
   setSetting,
+  closeDb,
   DEFAULT_SETTINGS
 };

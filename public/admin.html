@@ -97,7 +97,14 @@
           <option value="custom">Custom</option>
         </select>
       </div>
-      <div class="field"><label class="label">Merchant ID</label><input name="merchant_id" class="input"/></div>
+      <div class="field">
+        <label class="label">API Type</label>
+        <select name="api_type" class="input">
+          <option value="snap">SNAP API</option>
+          <option value="non-snap">Non-SNAP API</option>
+        </select>
+      </div>
+      <div class="field"><label class="label">Merchant ID <span style="font-weight:normal;color:#888;font-size:12px">(Opsional)</span></label><input name="merchant_id" class="input"/></div>
       <div class="field" style="grid-column:1/-1"><label class="label">API Base URL</label><input name="api_base_url" type="url" class="input"/></div>
       <div class="field" style="grid-column:1/-1"><label class="label">API Key / Secret</label><input name="api_key" class="input"/></div>
       <div class="field"><label class="label">Masa Berlaku QRIS (menit)</label><input name="expiry_minutes" type="number" min="1" max="1440" class="input"/></div>
@@ -122,8 +129,8 @@
     <div style="font-weight:700;font-size:15px;margin-bottom:14px">Branding</div>
     <form id="branding-form" class="grid-2" style="gap:14px">
       <div class="field"><label class="label">Nama Situs</label><input name="site_name" class="input"/></div>
-      <div class="field"><label class="label">Logo URL</label><input name="logo_url" type="url" class="input"/></div>
-      <div class="field" style="grid-column:1/-1"><label class="label">Banner URL</label><input name="banner_url" type="url" class="input"/></div>
+      <div class="field"><label class="label">Logo URL</label><input name="logo_url" type="file" accept="image/png, image/jpeg, image/webp, image/svg+xml" class="input"/><div class="text-mid" style="font-size:12px;margin-top:4px" id="logo-preview">Saat ini: <a href="" target="_blank" id="logo-link">Lihat</a></div></div>
+      <div class="field" style="grid-column:1/-1"><label class="label">Banner URL</label><input name="banner_url" type="file" accept="image/png, image/jpeg, image/webp, image/svg+xml" class="input"/><div class="text-mid" style="font-size:12px;margin-top:4px" id="banner-preview">Saat ini: <a href="" target="_blank" id="banner-link">Lihat</a></div></div>
       <div class="row" style="grid-column:1/-1;justify-content:flex-end"><button class="btn btn-dark">Simpan</button></div>
     </form>
   </div>
@@ -152,7 +159,13 @@
   function fillForm(form, data) {
     Object.entries(data || {}).forEach(([k, v]) => {
       const el = form.querySelector(`[name="${k}"]`);
-      if (el) el.value = v ?? "";
+      if (el) {
+        if (el.type !== "file") el.value = v ?? "";
+        else {
+          const link = document.getElementById(k.split("_")[0] + "-link");
+          if (link) { link.href = v; link.textContent = v; }
+        }
+      }
     });
   }
   function readForm(form) {
@@ -264,12 +277,35 @@
     } catch (err) { app.showToast(err.message, "error"); }
   });
 
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
   function bindSave(formId, key) {
     document.getElementById(formId).addEventListener("submit", async (ev) => {
       ev.preventDefault();
       try {
-        await app.api(`/api/admin/settings/${key}`, { method: "PUT", body: readForm(ev.currentTarget) });
+        const formData = readForm(ev.currentTarget);
+        
+        // Handle file inputs manually
+        if (key === "branding") {
+          const logoInput = ev.currentTarget.querySelector('[name="logo_url"]');
+          const bannerInput = ev.currentTarget.querySelector('[name="banner_url"]');
+          if (logoInput.files[0]) formData.logo_url = await fileToBase64(logoInput.files[0]);
+          else delete formData.logo_url;
+          
+          if (bannerInput.files[0]) formData.banner_url = await fileToBase64(bannerInput.files[0]);
+          else delete formData.banner_url;
+        }
+
+        await app.api(`/api/admin/settings/${key}`, { method: "PUT", body: formData });
         app.showToast("Tersimpan", "success");
+        if (key === "branding") loadAll(); // refresh links
       } catch (err) { app.showToast(err.message, "error"); }
     });
   }

@@ -25,8 +25,8 @@ function buildPayload({ merchantId, reference, amount }) {
 
 router.post("/", requireAuth, async (req, res) => {
   try {
-    const amount = Number(req.body?.amount);
-    if (!Number.isFinite(amount) || amount < 1000) {
+    const baseAmount = Number(req.body?.amount);
+    if (!Number.isFinite(baseAmount) || baseAmount < 1000) {
       return res
         .status(400)
         .json({ error: "Amount must be at least IDR 1.000" });
@@ -36,8 +36,9 @@ router.post("/", requireAuth, async (req, res) => {
     const expiryMinutes = Number(provider?.expiry_minutes || 15);
 
     const flatPercent = Number(fees?.qris_flat_percent || 0.7);
-    const fee = Math.round((amount * flatPercent) / 100);
-    const netAmount = amount - fee;
+    const fee = Math.round((baseAmount * flatPercent) / 100);
+    const amount = baseAmount + fee; // Buyer pays gross amount
+    const netAmount = baseAmount;    // Merchant receives requested amount
 
     const reference =
       "ES" +
@@ -89,73 +90,90 @@ router.post("/", requireAuth, async (req, res) => {
 });
 
 router.get("/:id", requireAuth, async (req, res) => {
-  const rows = await query(
-    "SELECT * FROM qris_orders WHERE id = ? AND user_id = ?",
-    [req.params.id, req.user.sub]
-  );
-  if (!rows.length) return res.status(404).json({ error: "Not found" });
-  const order = rows[0];
-  if (order.status === "pending" && new Date(order.expires_at) < new Date()) {
-    await query("UPDATE qris_orders SET status='expired' WHERE id=?", [
-      order.id
-    ]);
-    order.status = "expired";
+  try {
+    if (!req.params.id) return res.status(400).json({ error: "Order ID required" });
+    const rows = await query(
+      "SELECT * FROM qris_orders WHERE id = ? AND user_id = ?",
+      [req.params.id, req.user.sub]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Not found" });
+    const order = rows[0];
+    if (order.status === "pending" && new Date(order.expires_at) < new Date()) {
+      await query("UPDATE qris_orders SET status='expired' WHERE id=?", [
+        order.id
+      ]);
+      order.status = "expired";
+    }
+    res.json({ order });
+  } catch (err) {
+    console.error("[qris] fetch error:", err);
+    res.status(500).json({ error: "Failed to load order" });
   }
-  res.json({ order });
 });
 
 router.get("/", requireAuth, async (req, res) => {
-  const rows = await query(
-    `SELECT id, reference, amount, fee, net_amount, status, expires_at, paid_at, created_at
-     FROM qris_orders WHERE user_id = ?
-     ORDER BY created_at DESC LIMIT 50`,
-    [req.user.sub]
-  );
-  res.json({ orders: rows });
+  try {
+    const rows = await query(
+      `SELECT id, reference, amount, fee, net_amount, status, expires_at, paid_at, created_at
+       FROM qris_orders WHERE user_id = ?
+       ORDER BY created_at DESC LIMIT 50`,
+      [req.user.sub]
+    );
+    res.json({ orders: rows });
+  } catch (err) {
+    console.error("[qris] list error:", err);
+    res.status(500).json({ error: "Failed to load orders" });
+  }
 });
 
 // Mock "payment" endpoint to mark a QRIS as paid (dev/admin convenience until provider webhook is wired)
 router.post("/:id/mock-pay", requireAuth, async (req, res) => {
-  const rows = await query(
-    "SELECT * FROM qris_orders WHERE id = ? AND user_id = ?",
-    [req.params.id, req.user.sub]
-  );
-  if (!rows.length) return res.status(404).json({ error: "Not found" });
-  const order = rows[0];
-  if (order.status !== "pending") {
-    return res.status(400).json({ error: `Order already ${order.status}` });
-  }
-  if (new Date(order.expires_at) < new Date()) {
-    await query("UPDATE qris_orders SET status='expired' WHERE id=?", [order.id]);
-    return res.status(400).json({ error: "Order expired" });
-  }
-  // credit user balance net of platform fee
-  const userRows = await query(
-    "SELECT balance FROM users WHERE id = ? FOR UPDATE",
-    [order.user_id]
-  );
-  const newBalance = Number(userRows[0].balance) + Number(order.net_amount);
-  await query("UPDATE users SET balance = ? WHERE id = ?", [
-    newBalance,
-    order.user_id
-  ]);
-  await query(
-    "UPDATE qris_orders SET status='paid', paid_at = NOW() WHERE id = ?",
-    [order.id]
-  );
-  await query(
-    `INSERT INTO transactions (id, user_id, type, amount, balance_after, reference, description)
-     VALUES (?, ?, 'qris_in', ?, ?, ?, ?)`,
-    [
-      uuid(),
-      order.user_id,
-      order.net_amount,
+  try {
+    if (!req.params.id) return res.status(400).json({ error: "Order ID required" });
+    const rows = await query(
+      "SELECT * FROM qris_orders WHERE id = ? AND user_id = ?",
+      [req.params.id, req.user.sub]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Not found" });
+    const order = rows[0];
+    if (order.status !== "pending") {
+      return res.status(400).json({ error: `Order already ${order.status}` });
+    }
+    if (new Date(order.expires_at) < new Date()) {
+      await query("UPDATE qris_orders SET status='expired' WHERE id=?", [order.id]);
+      return res.status(400).json({ error: "Order expired" });
+    }
+    // credit user balance net of platform fee
+    const userRows = await query(
+      "SELECT balance FROM users WHERE id = ? FOR UPDATE",
+      [order.user_id]
+    );
+    const newBalance = Number(userRows[0].balance) + Number(order.net_amount);
+    await query("UPDATE users SET balance = ? WHERE id = ?", [
       newBalance,
-      order.reference,
-      `QRIS payment received (gross IDR ${order.amount}, fee IDR ${order.fee})`
-    ]
-  );
-  res.json({ ok: true, balance: newBalance });
+      order.user_id
+    ]);
+    await query(
+      "UPDATE qris_orders SET status='paid', paid_at = NOW() WHERE id = ?",
+      [order.id]
+    );
+    await query(
+      `INSERT INTO transactions (id, user_id, type, amount, balance_after, reference, description)
+       VALUES (?, ?, 'qris_in', ?, ?, ?, ?)`,
+      [
+        uuid(),
+        order.user_id,
+        order.net_amount,
+        newBalance,
+        order.reference,
+        `QRIS payment received (gross IDR ${order.amount}, fee IDR ${order.fee})`
+      ]
+    );
+    res.json({ ok: true, balance: newBalance });
+  } catch (err) {
+    console.error("[qris] mock-pay error:", err);
+    res.status(500).json({ error: "Failed to process payment" });
+  }
 });
 
 module.exports = router;

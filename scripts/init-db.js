@@ -1,7 +1,7 @@
 "use strict";
 
 require("dotenv").config();
-const { ensureSchema, ensureAdminUser, pool } = require("../server/db");
+const { ensureSchema, ensureAdminUser, closeDb } = require("../server/db");
 
 (async () => {
   try {
@@ -12,6 +12,6 @@ const { ensureSchema, ensureAdminUser, pool } = require("../server/db");
     console.error("[esaku] init failed:", err);
     process.exitCode = 1;
   } finally {
-    await pool.end();
+    await closeDb();
   }
 })();

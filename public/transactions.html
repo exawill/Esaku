@@ -1,90 +1,98 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Esaku — Riwayat Transaksi</title>
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="/css/app.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Esaku — Riwayat Transaksi</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
+
 <body>
-<div id="app-root"></div>
+  <div id="app-root"></div>
 
-<main class="container">
-  <div class="page-head">
-    <div class="page-eyebrow">Riwayat</div>
-    <h1 class="page-title">Riwayat Transaksi</h1>
-    <p class="page-sub">Semua transaksi tercatat — masuk dari QRIS, biaya MDR, dan pencairan dana.</p>
-  </div>
+  <main class="container">
+    <div class="page-head">
+      <div class="page-eyebrow">Riwayat</div>
+      <h1 class="page-title">Riwayat Transaksi</h1>
+      <p class="page-sub">Semua transaksi tercatat — masuk dari QRIS, biaya MDR, dan pencairan dana.</p>
+    </div>
 
-  <div class="card mt-4" style="margin-bottom:32px">
-    <div class="row-between" style="margin-bottom:14px">
-      <div class="row" style="gap:6px">
-        <div class="chip-row" id="filterChips">
-          <button class="chip is-active" data-filter="all">Semua</button>
-          <button class="chip" data-filter="qris_in">Pemasukan QRIS</button>
-          <button class="chip" data-filter="withdrawal_out">Pencairan</button>
-          <button class="chip" data-filter="fee">Biaya</button>
+    <div class="card mt-4" style="margin-bottom:32px">
+      <div class="row-between" style="margin-bottom:14px">
+        <div class="row" style="gap:6px">
+          <div class="chip-row" id="filterChips">
+            <button class="chip is-active" data-filter="all">Semua</button>
+            <button class="chip" data-filter="qris_in">Pemasukan QRIS</button>
+            <button class="chip" data-filter="withdrawal_out">Pencairan</button>
+            <button class="chip" data-filter="fee">Biaya</button>
+          </div>
+        </div>
+        <div class="field-input" style="min-width:240px">
+          <span class="px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8" />
+              <path d="M21 21l-4.35-4.35" />
+            </svg></span>
+          <input id="qSearch" placeholder="Cari deskripsi atau referensi..." />
         </div>
       </div>
-      <div class="field-input" style="min-width:240px">
-        <span class="px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>
-        <input id="qSearch" placeholder="Cari deskripsi atau referensi..."/>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Tipe</th>
+              <th>Deskripsi</th>
+              <th>Referensi</th>
+              <th class="right">Nominal</th>
+              <th class="right">Saldo</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
       </div>
     </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Tanggal</th>
-            <th>Tipe</th>
-            <th>Deskripsi</th>
-            <th>Referensi</th>
-            <th class="right">Nominal</th>
-            <th class="right">Saldo</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-  </div>
-</main>
+  </main>
 
-<footer class="app-foot">© 2025 Esaku · <a href="/">Beranda</a></footer>
+  <footer class="app-foot">© 2026 Esaku · <a href="/">Beranda</a></footer>
 
-<script src="/js/common.js"></script>
-<script src="/js/shell.js"></script>
-<script>
-(async function () {
-  const user = await shell.mount();
-  if (!user) return;
+  <script src="/js/common.js"></script>
+  <script src="/js/shell.js"></script>
+  <script>
+    (async function () {
+      const user = await shell.mount();
+      if (!user) return;
 
-  let all = [];
-  let filter = "all";
-  let q = "";
+      let all = [];
+      let filter = "all";
+      let q = "";
 
-  const TYPE_LABEL = { qris_in: "Pemasukan QRIS", withdrawal_out: "Pencairan", fee: "Biaya", adjustment: "Penyesuaian" };
-  const TYPE_PILL = { qris_in: "pill-green", withdrawal_out: "pill-red", fee: "pill-amber", adjustment: "pill-default" };
+      const TYPE_LABEL = { qris_in: "Pemasukan QRIS", withdrawal_out: "Pencairan", fee: "Biaya", adjustment: "Penyesuaian" };
+      const TYPE_PILL = { qris_in: "pill-green", withdrawal_out: "pill-red", fee: "pill-amber", adjustment: "pill-default" };
 
-  function render() {
-    const tbody = document.getElementById("rows");
-    const list = all.filter((t) => {
-      if (filter !== "all" && t.type !== filter) return false;
-      if (q) {
-        const blob = (t.description + " " + (t.reference || "")).toLowerCase();
-        if (!blob.includes(q.toLowerCase())) return false;
-      }
-      return true;
-    });
-    if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="empty">Tidak ada transaksi yang cocok.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = list.map((t) => {
-      const positive = Number(t.amount) >= 0;
-      const klass = positive ? "text-green" : "text-red";
-      return `
+      function render() {
+        const tbody = document.getElementById("rows");
+        const list = all.filter((t) => {
+          if (filter !== "all" && t.type !== filter) return false;
+          if (q) {
+            const blob = (t.description + " " + (t.reference || "")).toLowerCase();
+            if (!blob.includes(q.toLowerCase())) return false;
+          }
+          return true;
+        });
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty">Tidak ada transaksi yang cocok.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map((t) => {
+          const positive = Number(t.amount) >= 0;
+          const klass = positive ? "text-green" : "text-red";
+          return `
         <tr>
           <td>${app.formatDate(t.created_at)}</td>
           <td><span class="pill ${TYPE_PILL[t.type] || "pill-default"}">${TYPE_LABEL[t.type] || t.type}</span></td>
@@ -93,25 +101,26 @@
           <td class="right ${klass}" style="font-weight:700">${positive ? "+" : ""}${app.formatIDR(t.amount)}</td>
           <td class="right">${app.formatIDR(t.balance_after)}</td>
         </tr>`;
-    }).join("");
-  }
+        }).join("");
+      }
 
-  document.querySelectorAll("#filterChips .chip").forEach((c) => {
-    c.addEventListener("click", () => {
-      document.querySelectorAll("#filterChips .chip").forEach((b) => b.classList.remove("is-active"));
-      c.classList.add("is-active");
-      filter = c.dataset.filter;
-      render();
-    });
-  });
-  document.getElementById("qSearch").addEventListener("input", (ev) => { q = ev.target.value.trim(); render(); });
+      document.querySelectorAll("#filterChips .chip").forEach((c) => {
+        c.addEventListener("click", () => {
+          document.querySelectorAll("#filterChips .chip").forEach((b) => b.classList.remove("is-active"));
+          c.classList.add("is-active");
+          filter = c.dataset.filter;
+          render();
+        });
+      });
+      document.getElementById("qSearch").addEventListener("input", (ev) => { q = ev.target.value.trim(); render(); });
 
-  try {
-    const data = await app.api("/api/transactions?limit=200");
-    all = data.transactions || [];
-    render();
-  } catch (err) { app.showToast(err.message, "error"); }
-})();
-</script>
+      try {
+        const data = await app.api("/api/transactions?limit=200");
+        all = data.transactions || [];
+        render();
+      } catch (err) { app.showToast(err.message, "error"); }
+    })();
+  </script>
 </body>
+
 </html>

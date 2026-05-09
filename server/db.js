@@ -151,7 +151,7 @@ const MYSQL_SCHEMA_STATEMENTS = [
     email VARCHAR(190) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NULL,
     name VARCHAR(120) NULL,
-    role ENUM('user','admin') NOT NULL DEFAULT 'user',
+    role ENUM('user','admin','test') NOT NULL DEFAULT 'user',
     balance DECIMAL(18,2) NOT NULL DEFAULT 0,
     oauth_provider VARCHAR(40) NULL,
     oauth_subject VARCHAR(190) NULL,
@@ -317,9 +317,13 @@ async function ensureSchema() {
 }
 
 async function ensureAdminUser() {
+  const email = (process.env.ADMIN_EMAIL || "").trim();
+  const adminPassword = (process.env.ADMIN_PASSWORD || "").trim();
+  if (!email || !adminPassword) {
+    console.log("[esaku] ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping admin creation.");
+    return;
+  }
   await initDb();
-  const email = process.env.ADMIN_EMAIL || "Admin@esaku.xyz";
-  const adminPassword = process.env.ADMIN_PASSWORD || "1234567890";
   const hash = await bcrypt.hash(adminPassword, 10);
   const rows = await query("SELECT id FROM users WHERE email = ?", [email]);
   if (rows.length) {
@@ -331,7 +335,7 @@ async function ensureAdminUser() {
     "INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, 'admin')",
     [uuid(), email, hash, "Esaku Admin"]
   );
-  console.log(`[esaku] Default admin created -> ${email} :: password: ${adminPassword}`);
+  console.log(`[esaku] Default admin created -> ${email}`);
 }
 
 async function getSetting(key) {
@@ -370,12 +374,19 @@ async function closeDb() {
   }
 }
 
+function now() {
+  return DB_CLIENT === "mysql" ? "NOW()" : "datetime('now')";
+}
+
 module.exports = {
   query,
+  initDb,
   ensureSchema,
   ensureAdminUser,
   getSetting,
   setSetting,
   closeDb,
+  now,
+  DB_CLIENT,
   DEFAULT_SETTINGS
 };

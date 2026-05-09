@@ -1,40 +1,62 @@
 "use strict";
 
 const express = require("express");
-const { query, getSetting, setSetting, DEFAULT_SETTINGS } = require("../db");
+const { query, getSetting, setSetting, DEFAULT_SETTINGS, now } = require("../db");
 const { requireAdmin } = require("../middleware/auth");
 
 const router = express.Router();
 
 router.use(requireAdmin);
 
-router.get("/stats", async (_req, res) => {
-  const users = await query("SELECT COUNT(*) AS c FROM users");
-  const admins = await query("SELECT COUNT(*) AS c FROM users WHERE role='admin'");
-  const balance = await query("SELECT COALESCE(SUM(balance),0) AS s FROM users");
-  const pendingWd = await query(
-    "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS s FROM withdrawals WHERE status IN ('pending','processing')"
-  );
-  const completedWd = await query(
-    "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS s FROM withdrawals WHERE status='completed'"
-  );
-  const paidQris = await query(
-    "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS gross, COALESCE(SUM(fee),0) AS fee FROM qris_orders WHERE status='paid'"
-  );
-  res.json({
-    stats: {
-      total_users: Number(users[0]?.c || 0),
-      total_admins: Number(admins[0]?.c || 0),
-      total_balance: Number(balance[0]?.s || 0),
-      pending_withdrawals: { count: Number(pendingWd[0]?.c || 0), amount: Number(pendingWd[0]?.s || 0) },
-      completed_withdrawals: { count: Number(completedWd[0]?.c || 0), amount: Number(completedWd[0]?.s || 0) },
-      paid_qris: {
-        count: Number(paidQris[0]?.c || 0),
-        gross: Number(paidQris[0]?.gross || 0),
-        fee_collected: Number(paidQris[0]?.fee || 0)
-      }
-    }
-  });
+router.get("/stats", async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const users = await query("SELECT COUNT(*) AS c FROM users");
+    const admins = await query("SELECT COUNT(*) AS c FROM users WHERE role='admin'");
+    const balance = await query("SELECT COALESCE(SUM(balance),0) AS s FROM users");
+    const pendingWd = await query(
+      "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS s FROM withdrawals WHERE status IN ('pending','processing')"
+    );
+    const paidQris = await query(
+      "SELECT COUNT(*) AS c, COALESCE(SUM(amount),0) AS gross, COALESCE(SUM(fee),0) AS fee FROM qris_orders WHERE status='paid'"
+    );
+
+    // Revenue series (Pendapatan)
+    const revenueRows = await query(`
+      SELECT DATE(paid_at) as day, SUM(amount) as inflow
+      FROM qris_orders
+      WHERE status='paid' AND paid_at >= DATE('now', '-${days} days')
+      GROUP BY day ORDER BY day ASC
+    `);
+
+    // Balance activity series
+    // For simplicity, we show the daily net change in platform-wide balance
+    const activityRows = await query(`
+      SELECT DATE(created_at) as day, SUM(amount) as net_change
+      FROM transactions
+      WHERE created_at >= DATE('now', '-${days} days')
+      GROUP BY day ORDER BY day ASC
+    `);
+
+    res.json({
+      stats: {
+        total_users: Number(users[0]?.c || 0),
+        total_admins: Number(admins[0]?.c || 0),
+        total_balance: Number(balance[0]?.s || 0),
+        pending_withdrawals: { count: Number(pendingWd[0]?.c || 0), amount: Number(pendingWd[0]?.s || 0) },
+        paid_qris: {
+          count: Number(paidQris[0]?.c || 0),
+          gross: Number(paidQris[0]?.gross || 0),
+          fee_collected: Number(paidQris[0]?.fee || 0)
+        }
+      },
+      revenue_series: revenueRows.map(r => ({ day: r.day, value: Number(r.inflow) })),
+      balance_series: activityRows.map(r => ({ day: r.day, value: Number(r.net_change) }))
+    });
+  } catch (err) {
+    console.error("[admin] stats error:", err);
+    res.status(500).json({ error: "Failed to load stats" });
+  }
 });
 
 router.get("/settings", async (_req, res) => {
@@ -119,7 +141,7 @@ router.post("/withdrawals/:id/complete", async (req, res) => {
   try {
     if (!req.params.id) return res.status(400).json({ error: "Withdrawal ID required" });
     await query(
-      "UPDATE withdrawals SET status='completed', completed_at=NOW() WHERE id=?",
+      `UPDATE withdrawals SET status='completed', completed_at=${now()} WHERE id=?`,
       [req.params.id]
     );
     res.json({ ok: true });
@@ -152,13 +174,47 @@ router.post("/withdrawals/:id/fail", async (req, res) => {
       w.user_id
     ]);
     await query(
-      "UPDATE withdrawals SET status='failed', completed_at=NOW() WHERE id=?",
+      `UPDATE withdrawals SET status='failed', completed_at=${now()} WHERE id=?`,
       [w.id]
     );
     res.json({ ok: true });
   } catch (err) {
     console.error("[admin] withdrawal fail error:", err);
     res.status(500).json({ error: "Failed to fail withdrawal" });
+  }
+});
+
+router.delete("/users/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (!id) return res.status(400).json({ error: "User ID required" });
+    
+    // Prevent self-deletion
+    if (id === req.user.sub) {
+      return res.status(400).json({ error: "You cannot delete your own admin account." });
+    }
+
+    await query("DELETE FROM users WHERE id = ?", [id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[admin] user delete error:", err);
+    res.status(500).json({ error: "Failed to delete user" });
+  }
+});
+
+router.post("/reset-platform", async (req, res) => {
+  try {
+    // Clear all history
+    await query("DELETE FROM transactions");
+    await query("DELETE FROM qris_orders");
+    await query("DELETE FROM withdrawals");
+    // Reset all balances
+    await query("UPDATE users SET balance = 0");
+    
+    res.json({ ok: true, message: "Platform data has been reset successfully." });
+  } catch (err) {
+    console.error("[admin] platform reset error:", err);
+    res.status(500).json({ error: "Failed to reset platform data" });
   }
 });
 

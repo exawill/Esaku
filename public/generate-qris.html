@@ -86,6 +86,16 @@
           <div style="text-align:center;color:var(--ink-lt);font-size:12px">Belum ada QRIS aktif.</div>
         </div>
 
+        <!-- Success View -->
+        <div id="success-view" style="display:none;padding:24px 0;text-align:center">
+          <div class="success-icon" style="margin:0 auto">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div style="font-weight:800;font-size:20px;margin-top:16px;color:var(--green)">Pembayaran Berhasil!</div>
+          <div style="font-size:13px;color:#888;margin-top:4px">Saldo telah ditambahkan ke akun Anda.</div>
+          <button class="btn btn-outline btn-sm mt-4" onclick="location.reload()">Buat Baru</button>
+        </div>
+
         <div style="text-align:center">
           <div style="font-size:10px;color:#666" id="qr-ref">—</div>
           <div style="font-size:10px;color:#666;margin-top:3px">Scan dengan GoPay · OVO · DANA · ShopeePay · Bank</div>
@@ -113,7 +123,7 @@
     </div>
   </main>
 
-  <footer class="app-foot">© 2025 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
+  <footer class="app-foot">© 2026 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
 
   <script src="/js/common.js"></script>
   <script src="/js/shell.js"></script>
@@ -126,6 +136,45 @@
 
       let activeOrder = null;
       let timerHandle = null;
+      let pollHandle = null;
+
+      function stopPolling() {
+        if (pollHandle) {
+          clearTimeout(pollHandle);
+          pollHandle = null;
+        }
+      }
+
+      async function pollStatus() {
+        if (!activeOrder) return;
+        try {
+          const res = await app.api(`/api/qris/${activeOrder.id}/status`);
+          if (res.status === "paid") {
+            showSuccess();
+            return;
+          }
+          if (res.status === "expired") {
+            return;
+          }
+          // Poll every 3 seconds
+          pollHandle = setTimeout(pollStatus, 3000);
+        } catch (err) {
+          pollHandle = setTimeout(pollStatus, 5000);
+        }
+      }
+
+      function showSuccess() {
+        stopPolling();
+        clearInterval(timerHandle);
+        document.getElementById("qr-host").style.display = "none";
+        document.getElementById("timer-box").style.opacity = "0";
+        document.getElementById("success-view").style.display = "block";
+        document.getElementById("footstrip").classList.add("paid");
+        document.getElementById("footstrip").firstElementChild.textContent = "PEMBAYARAN DITERIMA";
+        
+        if (window.shell && shell.pingNotification) shell.pingNotification();
+        app.showToast("Pembayaran Diterima!", "success");
+      }
 
       function setSummary(n) {
         const wrap = document.getElementById("preview-summary");
@@ -179,6 +228,10 @@
         document.getElementById("actions-card").style.display = "none";
         // Clear active order
         activeOrder = null;
+        stopPolling();
+        document.getElementById("qr-host").style.display = "";
+        document.getElementById("timer-box").style.opacity = "1";
+        document.getElementById("success-view").style.display = "none";
       });
 
       function startTimer(expiresAt) {
@@ -208,8 +261,12 @@
         document.getElementById("qr-host").innerHTML = `<img src="${order.qr_image}" alt="QRIS"/>`;
         document.getElementById("footstrip").classList.remove("expired");
         document.getElementById("footstrip").firstElementChild.textContent = "QRIS · MDR 0,7% DITANGGUNG PEMBELI";
-        document.getElementById("actions-card").style.display = "";
+        if (user.role === "admin" || user.role === "test") {
+          document.getElementById("actions-card").style.display = "";
+        }
         startTimer(order.expires_at);
+        stopPolling();
+        pollStatus();
       }
 
       document.getElementById("generate-btn").addEventListener("click", async () => {
@@ -241,8 +298,7 @@
         if (!activeOrder) return;
         try {
           const res = await app.api(`/api/qris/${activeOrder.id}/mock-pay`, { method: "POST" });
-          app.showToast(`Dibayar — saldo: ${app.formatIDR(res.balance)}`, "success");
-          if (window.shell && shell.pingNotification) shell.pingNotification();
+          showSuccess();
         } catch (err) { app.showToast(err.message, "error"); }
       });
     })();

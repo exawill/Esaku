@@ -59,5 +59,7 @@ module.exports = {
   setAuthCookie,
   clearAuthCookie,
   requireAuth,
-  requireAdmin
+  requireAdmin,
+  readToken,
+  JWT_SECRET
 };

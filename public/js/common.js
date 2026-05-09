@@ -79,8 +79,56 @@
     setTimeout(() => el.remove(), 3500);
   }
 
+  function showConfirm(title, message, okText = "Ya, Lanjutkan") {
+    return new Promise((resolve) => {
+      let host = document.getElementById("modal-host");
+      if (!host) {
+        host = document.createElement("div");
+        host.id = "modal-host";
+        document.body.appendChild(host);
+      }
+      const el = document.createElement("div");
+      el.className = "modal-overlay open";
+      el.innerHTML = `
+        <div class="modal-content" style="max-width:400px">
+          <div class="modal-header">
+            <h3 class="modal-title">${title}</h3>
+          </div>
+          <div class="modal-body">
+            <p style="margin:0">${message}</p>
+          </div>
+          <div class="modal-footer" style="padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:12px">
+            <button class="btn btn-outline btn-sm" id="modal-cancel">Batal</button>
+            <button class="btn btn-dark btn-sm" id="modal-ok">${okText}</button>
+          </div>
+        </div>
+      `;
+      host.appendChild(el);
+      document.body.style.overflow = "hidden";
+
+      const close = (val) => {
+        el.classList.remove("open");
+        setTimeout(() => {
+          el.remove();
+          if (!host.children.length) document.body.style.overflow = "";
+        }, 200);
+        resolve(val);
+      };
+
+      el.querySelector("#modal-cancel").onclick = () => close(false);
+      el.querySelector("#modal-ok").onclick = () => close(true);
+      el.onclick = (e) => { if (e.target === el) close(false); };
+    });
+  }
+
+  function esc(str) {
+    if (!str) return "";
+    const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" };
+    return String(str).replace(/[&<>"']/g, (m) => map[m]);
+  }
+
   window.app = {
-    api, formatIDR, formatDate, unFmt, fmtAmt,
-    getMe, requireUser, signOut, showToast
+    api, formatIDR, formatDate, unFmt, fmtAmt, esc,
+    getMe, requireUser, signOut, showToast, confirm: showConfirm
   };
 })();

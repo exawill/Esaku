@@ -222,7 +222,7 @@
         <tr>
           <td>${app.formatDate(w.created_at)}</td>
           <td>${w.method === "bank" ? "Bank" : "E-Wallet"}</td>
-          <td class="text-mono" style="font-size:12px">${w.destination}</td>
+          <td class="text-mono" style="font-size:12px">${app.esc(w.destination)}</td>
           <td class="right">${app.formatIDR(w.amount)}</td>
           <td class="right">${app.formatIDR(w.fee)}</td>
           <td>${statusPill(w.status)}</td>

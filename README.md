@@ -4,7 +4,7 @@ Esaku is a fully-functional QRIS Payment Gateway dashboard tailored for individu
 
 > **Important**: This project has been migrated from vanilla HTML/JS to a modern **React + Vite** frontend, styled with **Tailwind CSS**. The backend remains an **Express.js** server.
 
-![Dashboard Preview](public_old/assets/og-image.png)
+![Dashboard Preview](src/assets/image.jpg)
 
 ## Features
 

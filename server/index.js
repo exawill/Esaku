@@ -19,7 +19,8 @@ const dashboardRoutes = require("./routes/dashboard");
 const app = express();
 app.disable("x-powered-by");
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, "..", "public");
+const IS_PROD = process.env.NODE_ENV === "production";
+const PUBLIC_DIR = path.join(__dirname, "..", IS_PROD ? "dist" : "public");
 
 app.disable("x-powered-by");
 app.use(express.json({ limit: "5mb" }));
@@ -37,24 +38,14 @@ const apiLimiter = rateLimit({
 });
 app.use("/api", apiLimiter);
 
-// Redirect any *.html URL to the clean version (before static so files aren't served directly)
-const HTML_REDIRECT_OVERRIDES = {
-  index: "/",
-  auth: "/sign-in"
-};
-app.get(/^\/(.*)\.html$/, (req, res) => {
-  const stem = req.params[0];
-  const target = HTML_REDIRECT_OVERRIDES[stem] || "/" + stem;
-  return res.redirect(301, target);
-});
-
-// Static assets (no extension fall-through for HTML)
+// Serve static files (Vite dist in prod, legacy public in dev)
 app.use(
   express.static(PUBLIC_DIR, {
     extensions: false,
     index: false
   })
 );
+
 
 // API routes
 app.use("/api/auth", authRoutes);
@@ -65,32 +56,15 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// Clean URL routing — map /name => /name.html, redirect /name.html => /name
-const PAGES = {
-  "/": "index.html",
-  "/demo": "demo.html",
-  "/sign-in": "auth.html",
-  "/sign-up": "auth.html",
-  "/dashboard": "dashboard.html",
-  "/generate-qris": "generate-qris.html",
-  "/withdrawal": "withdrawal.html",
-  "/transactions": "transactions.html",
-  "/profile": "profile.html",
-  "/admin": "admin.html"
-};
-
-for (const [route, file] of Object.entries(PAGES)) {
-  app.get(route, (_req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, file));
-  });
-}
-
-// 404 fallback
-app.use((req, res) => {
+// Catch-all: serve React app (SPA routing)
+app.get("*", (req, res) => {
   if (req.path.startsWith("/api")) {
     return res.status(404).json({ error: "Not found" });
   }
-  res.status(404).sendFile(path.join(PUBLIC_DIR, "index.html"));
+  const indexFile = path.join(PUBLIC_DIR, "index.html");
+  res.sendFile(indexFile, (err) => {
+    if (err) res.status(404).send("Not found");
+  });
 });
 
 (async () => {

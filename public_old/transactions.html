@@ -96,8 +96,8 @@
         <tr>
           <td>${app.formatDate(t.created_at)}</td>
           <td><span class="pill ${TYPE_PILL[t.type] || "pill-default"}">${TYPE_LABEL[t.type] || t.type}</span></td>
-          <td>${t.description || "-"}</td>
-          <td class="text-mono" style="font-size:12px">${t.reference || "-"}</td>
+          <td>${app.esc(t.description) || "-"}</td>
+          <td class="text-mono" style="font-size:12px">${app.esc(t.reference) || "-"}</td>
           <td class="right ${klass}" style="font-weight:700">${positive ? "+" : ""}${app.formatIDR(t.amount)}</td>
           <td class="right">${app.formatIDR(t.balance_after)}</td>
         </tr>`;

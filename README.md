@@ -1,87 +1,50 @@
-# Esaku — QRIS Payment Gateway
+# Esaku (React + Express)
 
-Modern QRIS payment gateway for Indonesia. Flat 0.7% fee per transaction, fast
-withdrawals to bank or e-wallet, and a clean dashboard.
+Esaku is a fully-functional QRIS Payment Gateway dashboard tailored for individuals (merchant perorangan) in Indonesia. 
 
-## Stack
+> **Important**: This project has been migrated from vanilla HTML/JS to a modern **React + Vite** frontend, styled with **Tailwind CSS**. The backend remains an **Express.js** server.
 
-- Node.js + Express (server)
-- MySQL (Hostinger) via `mysql2/promise`
-- HTML5 + Tailwind CSS + vanilla JavaScript (frontend)
-- Minimal TypeScript for shared type definitions
-- Hostinger OAuth + email/password authentication
-- JWT (httpOnly cookie) sessions
+![Dashboard Preview](public_old/assets/og-image.png)
 
-## Project layout
+## Features
 
-```
-server/            Express server, routes, db, middleware
-  index.js         Entry point + clean URL routing
-  db.js            MySQL connection pool, schema bootstrap, settings helpers
-  middleware/      Auth middleware (JWT cookies)
-  routes/          auth, qris, withdrawal, transactions, profile, dashboard, admin
-  types.ts         Shared TypeScript type definitions
-public/            Static frontend (clean URL friendly)
-  index.html       Landing page (Home, Product, Pricing, Features)
-  auth.html        Sign-in / sign-up
-  dashboard.html   User dashboard with 7/30/90 day bar chart
-  generate-qris.html
-  withdrawal.html
-  transactions.html
-  profile.html
-  admin.html       Admin CMS
-  js/              i18n, theme, common, shell
-  css/app.css      Prebuilt frontend CSS
-  assets/          Logo, banner, favicon
-scripts/init-db.js One-shot DB initializer
-```
+- **React Single Page Application**: Fast, seamless navigation using React Router.
+- **Tailwind CSS Styling**: Modern, responsive, and minimalist UI with dark mode support.
+- **MDR 0.7% Flat**: Automatically calculates standard MDR to be paid by the buyer.
+- **No KYC Required**: Direct generation of QRIS without complex verifications.
+- **Dynamic Dashboard**: Live balance, revenue charts (7/30/90 days), and transaction history.
+- **Live QRIS Generator**: Generate QRIS dynamically with real-time countdown and payment polling.
+- **Withdrawals**: Built-in logic for Bank Transfer & E-Wallet withdrawals with fee deduction.
+- **Admin CMS**: Fully functional admin panel to monitor stats, user balances, manage withdrawal queues, and change app settings.
 
-## URLs
+## Tech Stack
 
-Clean URLs only:
+### Frontend
+- **Framework**: React 18
+- **Build Tool**: Vite
+- **Routing**: React Router v6
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
 
-- `/` landing
-- `/demo` interactive desktop demo (no sign-up required)
-- `/sign-in` · `/sign-up`
-- `/dashboard`
-- `/generate-qris`
-- `/withdrawal`
-- `/transactions`
-- `/profile`
-- `/admin` (admin only)
+### Backend
+- **Server**: Node.js + Express
+- **Database**: SQLite (via `better-sqlite3`)
+- **Authentication**: JWT & Hostinger OAuth
+- **Image Handling**: Base64 data URIs for branding assets
 
-Any `*.html` URL is permanently redirected to its clean form
-(`/index.html` → `/`, `/auth.html` → `/sign-in`, everything else
-strips the extension).
+## Getting Started
 
-## Setup
-
-1. Create a Hostinger MySQL database, then copy `.env.example` to `.env` and fill in:
-
-   ```env
-   DB_HOST=...
-   DB_USER=...
-   DB_PASSWORD=...
-   DB_NAME=esaku
-
-   JWT_SECRET=long-random-string
-   APP_URL=https://esaku.xyz
-
-   HOSTINGER_CLIENT_ID=...
-   HOSTINGER_CLIENT_SECRET=...
-   HOSTINGER_REDIRECT_URI=https://esaku.xyz/auth/hostinger/callback
-   ```
-
-2. Install dependencies:
+1. Clone this repository and install dependencies:
 
    ```bash
    npm install
    ```
 
-   The frontend CSS is already built and served from `public/css/app.css`. If you want to re-run the demo build path, use:
+2. Copy the example environment file and configure it (optional, defaults usually work for local dev):
 
    ```bash
-   npm run build:css
+   cp .env.example .env
    ```
 
 3. Initialize the database (creates tables, default settings, and the default admin):
@@ -90,17 +53,25 @@ strips the extension).
    npm run db:init
    ```
 
-   The default admin (`Admin@esaku.xyz`) is created with a random password printed
-   to stdout exactly once — save it. You can change it from `/profile` after
-   logging in.
+   The default admin (`admin@esaku.xyz`) is created with the password `root1234!` (as defined in `.env`). You can change this in the Admin CMS or your Profile page later.
 
-4. Start:
+4. Start both the Vite dev server and Express backend concurrently:
 
    ```bash
-   npm start
-   # or
    npm run dev
    ```
+
+   - **Frontend**: Runs on `http://localhost:5173`
+   - **Backend API**: Runs on `http://localhost:3005` (proxied automatically via Vite)
+
+5. (Optional) To build for production:
+
+   ```bash
+   npm run build
+   npm start
+   ```
+
+   This will build the React app into the `dist` directory, which the Express server will then statically serve alongside the API routes.
 
 ## Pricing model (configurable via Admin CMS)
 
@@ -112,22 +83,14 @@ strips the extension).
 
 ## Admin CMS
 
-`/admin` exposes:
+Login as an Admin (default `admin@esaku.xyz`) and visit `/admin` to:
 
-- **QRIS Provider API** — pick which upstream API generates QRIS payloads
-  (internal / Midtrans / Xendit / iPaymu / custom), with merchant ID, base URL,
-  API key, and expiry-minutes.
-- **Fees** — QRIS percent, withdrawal min, bank/e-wallet flat fees.
-- **Branding** — site name, logo URL, banner URL.
-- **Withdrawals queue** — complete or fail (refunds balance) pending
-  withdrawals.
-- **Users** — view all users, balances, roles, sign-up dates.
+1. View platform aggregate statistics (total users, balance, pending withdrawals).
+2. Monitor and fulfill withdrawal requests (mark as completed or failed).
+3. Configure API Provider settings (Internal, Midtrans, Xendit, etc.).
+4. Adjust platform fees.
+5. Manage users.
 
-## Notes
+## License
 
-- The bundled "internal" QRIS generator is a placeholder payload string suitable
-  for development. Switch to a real provider in the Admin CMS before going live.
-- **Real-time Confirmation**: The QRIS page polls the backend status and automatically updates to a success state with a checkmark and audible notification upon payment.
-- **Test Role**: A `test` role is available for accounts that need to use developer tools (like `mock-pay`) without full administrative access.
-- **Advanced Analytics**: The Admin CMS includes unified time-series charts for revenue and platform-wide activity tracking.
-- Mock-pay endpoint (`POST /api/qris/:id/mock-pay`) is restricted to **admin** and **test** roles only.
+MIT License.

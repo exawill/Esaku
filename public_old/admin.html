@@ -280,9 +280,9 @@
           ? list.map((w) => `
         <tr data-wd="${w.id}" data-status="${w.status}">
           <td>${app.formatDate(w.created_at)}</td>
-          <td>${w.email}</td>
+          <td>${app.esc(w.email)}</td>
           <td>${w.method === "bank" ? "Bank" : "E-Wallet"}</td>
-          <td class="text-mono" style="font-size:12px">${w.destination}</td>
+          <td class="text-mono" style="font-size:12px">${app.esc(w.destination)}</td>
           <td class="right">${app.formatIDR(w.amount)}</td>
           <td class="right">${app.formatIDR(w.fee)}</td>
           <td>${statusPill(w.status)}</td>
@@ -431,7 +431,7 @@
 
         const yes = await app.confirm(
           "Hapus Pengguna",
-          `Hapus pengguna <b>${email}</b>? Seluruh riwayat transaksi dan saldo akan ikut terhapus.`,
+          `Hapus pengguna <b>${app.esc(email)}</b>? Seluruh riwayat transaksi dan saldo akan ikut terhapus.`,
           "Ya, Hapus"
         );
         if (!yes) return;

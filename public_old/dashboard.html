@@ -1,130 +1,131 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>Esaku — Dasbor</title>
-  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="/css/app.css" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Esaku — Dasbor</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/app.css"/>
 </head>
-
 <body>
-  <div id="app-root"></div>
+<div id="app-root"></div>
 
-  <main class="container">
-    <div class="page-head">
-      <div class="page-eyebrow">Dasbor</div>
-      <h1 class="page-title" id="hello">Selamat datang</h1>
-      <p class="page-sub">Pantau saldo, omset, dan transaksi terkini Anda di sini.</p>
-    </div>
+<main class="container">
+  <div class="page-head">
+    <div class="page-eyebrow">Dasbor</div>
+    <h1 class="page-title" id="hello">Selamat datang</h1>
+    <p class="page-sub">Pantau saldo, omset, dan transaksi terkini Anda di sini.</p>
+  </div>
 
-    <div class="grid-2-1 mt-4">
-      <div class="dark-card">
-        <div class="row-between" style="align-items:flex-start">
-          <div>
-            <div class="label">Saldo Tersedia</div>
-            <div class="v" id="balance">—</div>
-            <div class="meta" id="balance-meta">Diperbarui baru saja</div>
-          </div>
-          <div class="row" style="gap:8px">
-            <a href="/withdrawal" class="btn btn-indigo btn-sm">Cairkan Dana</a>
-            <a href="/generate-qris" class="btn btn-outline btn-sm"
-              style="color:#fff;border-color:rgba(255,255,255,0.18)">Buat QRIS</a>
-          </div>
+  <div class="grid-2-1 mt-4">
+    <div class="dark-card">
+      <div class="row-between" style="align-items:flex-start">
+        <div>
+          <div class="label">Saldo Tersedia</div>
+          <div class="v" id="balance">—</div>
+          <div class="meta" id="balance-meta">Diperbarui baru saja</div>
+        </div>
+        <div class="row" style="gap:8px">
+          <a href="/withdrawal" class="btn btn-indigo btn-sm">Cairkan Dana</a>
+          <a href="/generate-qris" class="btn btn-outline btn-sm" style="color:#fff;border-color:rgba(255,255,255,0.18)">Buat QRIS</a>
         </div>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="row-between mt-2" style="margin-top:0">
-          <div style="font-size:13px;font-weight:700">Pendapatan</div>
-          <div class="tabs" id="rangeToggle" style="padding:3px">
-            <button class="tab is-active" data-range="7">7 Hari</button>
-            <button class="tab" data-range="30">30 Hari</button>
-            <button class="tab" data-range="90">90 Hari</button>
-          </div>
+    <div class="card">
+      <div class="row-between mt-2" style="margin-top:0">
+        <div style="font-size:13px;font-weight:700">Pendapatan</div>
+        <div class="tabs" id="rangeToggle" style="padding:3px">
+          <button class="tab is-active" data-range="7">7 Hari</button>
+          <button class="tab" data-range="30">30 Hari</button>
+          <button class="tab" data-range="90">90 Hari</button>
         </div>
-        <div class="bars mt-4" id="chart"></div>
-        <div class="bars-axis"><span id="rangeStart">—</span><span id="rangeEnd">—</span></div>
       </div>
+      <div class="bars mt-4" id="chart"></div>
+      <div class="bars-axis"><span id="rangeStart">—</span><span id="rangeEnd">—</span></div>
     </div>
+  </div>
 
-    <div class="kpi-grid mt-4">
-      <div class="kpi">
-        <div class="l">Omset</div>
-        <div class="v" id="kpi-in">—</div>
-      </div>
-      <div class="kpi">
-        <div class="l">Pencairan</div>
-        <div class="v" id="kpi-out">—</div>
-      </div>
-      <div class="kpi">
-        <div class="l">QRIS Berhasil</div>
-        <div class="v" id="kpi-count">—</div>
-      </div>
+  <div class="kpi-grid mt-4">
+    <div class="kpi"><div class="l">Omset</div><div class="v" id="kpi-in">—</div></div>
+    <div class="kpi"><div class="l">Pencairan</div><div class="v" id="kpi-out">—</div></div>
+    <div class="kpi"><div class="l">QRIS Berhasil</div><div class="v" id="kpi-count">—</div></div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="row-between" style="margin-bottom:8px">
+      <div style="font-size:13px;font-weight:700">Transaksi Terkini</div>
+      <a href="/transactions" class="btn-ghost" style="font-size:12px">Lihat Semua →</a>
     </div>
+    <div id="recent-list"></div>
+  </div>
 
-    <div class="card mt-4">
-      <div class="row-between" style="margin-bottom:8px">
-        <div style="font-size:13px;font-weight:700">Transaksi Terkini</div>
-        <a href="/transactions" class="btn-ghost" style="font-size:12px">Lihat Semua →</a>
-      </div>
-      <div id="recent-list"></div>
-    </div>
+  <div class="grid-2 mt-4" style="margin-bottom:32px">
+    <a href="/generate-qris" class="card" style="text-decoration:none;display:flex;flex-direction:column;gap:6px">
+      <div class="pill pill-indigo" style="align-self:flex-start">QRIS</div>
+      <div style="font-weight:700;font-size:14px">Buat QRIS Pembayaran</div>
+      <div class="text-mid" style="font-size:12px">MDR 0,7% ditanggung pembeli — Anda menerima nominal penuh.</div>
+    </a>
+    <a href="/withdrawal" class="card" style="text-decoration:none;display:flex;flex-direction:column;gap:6px">
+      <div class="pill pill-green" style="align-self:flex-start">Pencairan</div>
+      <div style="font-weight:700;font-size:14px">Cairkan ke E-Wallet / Bank</div>
+      <div class="text-mid" style="font-size:12px">Min. IDR 50.000 · Maks. IDR 5 jt/minggu · Estimasi 1×24 jam kerja.</div>
+    </a>
+  </div>
+</main>
 
-    <div class="grid-2 mt-4" style="margin-bottom:32px">
-      <a href="/generate-qris" class="card" style="text-decoration:none;display:flex;flex-direction:column;gap:6px">
-        <div class="pill pill-indigo" style="align-self:flex-start">QRIS</div>
-        <div style="font-weight:700;font-size:14px">Buat QRIS Pembayaran</div>
-        <div class="text-mid" style="font-size:12px">MDR 0,7% ditanggung pembeli — Anda menerima nominal penuh.</div>
-      </a>
-      <a href="/withdrawal" class="card" style="text-decoration:none;display:flex;flex-direction:column;gap:6px">
-        <div class="pill pill-green" style="align-self:flex-start">Pencairan</div>
-        <div style="font-weight:700;font-size:14px">Cairkan ke E-Wallet / Bank</div>
-        <div class="text-mid" style="font-size:12px">Min. IDR 50.000 · Maks. IDR 5 jt/minggu · Estimasi 1×24 jam kerja.
-        </div>
-      </a>
-    </div>
-  </main>
+<footer class="app-foot">© 2025 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
 
-  <footer class="app-foot">© 2026 Esaku · QRIS Merchant Perorangan · <a href="/">Beranda</a></footer>
+<script src="/js/common.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+(async function () {
+  const user = await shell.mount();
+  if (!user) return;
+  document.getElementById("hello").textContent = "Halo, " + (user.name || user.email.split("@")[0]);
 
-  <script src="/js/common.js"></script>
-  <script src="/js/shell.js"></script>
-  <script>
-    (async function () {
-      const user = await shell.mount();
-      if (!user) return;
-      document.getElementById("hello").textContent = "Halo, " + (user.name || user.email.split("@")[0]);
+  const tooltip = document.createElement("div");
+  tooltip.className = "chart-tooltip";
+  document.body.appendChild(tooltip);
 
-      function renderChart(series) {
-        const host = document.getElementById("chart");
-        host.innerHTML = "";
-        const max = Math.max(1, ...series.map((p) => p.inflow));
-        series.forEach((p, i) => {
-          const bar = document.createElement("div");
-          bar.className = "bar" + (i === series.length - 1 ? " peak" : "");
-          bar.style.height = Math.max(6, (p.inflow / max) * 130) + "px";
-          bar.title = p.day + " — " + app.formatIDR(p.inflow);
-          host.appendChild(bar);
-        });
-        document.getElementById("rangeStart").textContent = series[0]?.day || "—";
-        document.getElementById("rangeEnd").textContent = series[series.length - 1]?.day || "—";
-      }
+  function renderChart(series) {
+    const host = document.getElementById("chart");
+    host.innerHTML = "";
+    const max = Math.max(1, ...series.map((p) => p.inflow));
+    series.forEach((p, i) => {
+      const bar = document.createElement("div");
+      bar.className = "bar" + (i === series.length - 1 ? " peak" : "");
+      bar.style.height = Math.max(6, (p.inflow / max) * 130) + "px";
+      
+      bar.addEventListener("mouseenter", (e) => {
+        tooltip.innerHTML = `<div class="t-day">${p.day}</div><div class="t-val">${app.formatIDR(p.inflow)}</div>`;
+        tooltip.classList.add("is-visible");
+      });
+      bar.addEventListener("mousemove", (e) => {
+        tooltip.style.left = e.clientX + "px";
+        tooltip.style.top = e.clientY + "px";
+      });
+      bar.addEventListener("mouseleave", () => {
+        tooltip.classList.remove("is-visible");
+      });
+      
+      host.appendChild(bar);
+    });
+    document.getElementById("rangeStart").textContent = series[0]?.day || "—";
+    document.getElementById("rangeEnd").textContent = series[series.length - 1]?.day || "—";
+  }
 
-      function renderRecent(rows) {
-        const host = document.getElementById("recent-list");
-        if (!rows.length) {
-          host.innerHTML = '<div class="empty">Belum ada transaksi.</div>';
-          return;
-        }
-        host.innerHTML = rows.slice(0, 5).map((t) => {
-          const positive = Number(t.amount) >= 0;
-          const klass = t.type === "qris_in" ? "" : "out";
-          return `
+  function renderRecent(rows) {
+    const host = document.getElementById("recent-list");
+    if (!rows.length) {
+      host.innerHTML = '<div class="empty">Belum ada transaksi.</div>';
+      return;
+    }
+    host.innerHTML = rows.slice(0, 5).map((t) => {
+      const positive = Number(t.amount) >= 0;
+      const klass = t.type === "qris_in" ? "" : "out";
+      return `
         <div class="tx-row">
           <div class="tx-left">
             <div class="tx-icon ${klass}">${positive
@@ -139,34 +140,33 @@
             <div class="tx-amount ${positive ? "" : "out"}">${positive ? "+" : ""}${app.formatIDR(t.amount)}</div>
           </div>
         </div>`;
-        }).join("");
-      }
+    }).join("");
+  }
 
-      async function load(range) {
-        document.querySelectorAll("#rangeToggle .tab").forEach((b) => {
-          b.classList.toggle("is-active", Number(b.dataset.range) === range);
-        });
-        try {
-          const data = await app.api(`/api/dashboard/summary?days=${range}`);
-          document.getElementById("balance").textContent = app.formatIDR(data.balance);
-          document.getElementById("kpi-in").textContent = app.formatIDR(data.totals.inflow);
-          document.getElementById("kpi-out").textContent = app.formatIDR(data.totals.outflow);
-          document.getElementById("kpi-count").textContent = (data.totals.qris_count || 0).toLocaleString("id-ID");
-          renderChart(data.series);
-        } catch (err) { app.showToast(err.message, "error"); }
-      }
-      document.querySelectorAll("#rangeToggle .tab").forEach((btn) => {
-        btn.addEventListener("click", () => load(Number(btn.dataset.range)));
-      });
+  async function load(range) {
+    document.querySelectorAll("#rangeToggle .tab").forEach((b) => {
+      b.classList.toggle("is-active", Number(b.dataset.range) === range);
+    });
+    try {
+      const data = await app.api(`/api/dashboard/summary?days=${range}`);
+      document.getElementById("balance").textContent = app.formatIDR(data.balance);
+      document.getElementById("kpi-in").textContent = app.formatIDR(data.totals.inflow);
+      document.getElementById("kpi-out").textContent = app.formatIDR(data.totals.outflow);
+      document.getElementById("kpi-count").textContent = (data.totals.qris_count || 0).toLocaleString("id-ID");
+      renderChart(data.series);
+    } catch (err) { app.showToast(err.message, "error"); }
+  }
+  document.querySelectorAll("#rangeToggle .tab").forEach((btn) => {
+    btn.addEventListener("click", () => load(Number(btn.dataset.range)));
+  });
 
-      try {
-        const tx = await app.api("/api/transactions?limit=10");
-        renderRecent(tx.transactions || []);
-      } catch (err) { /* leave empty state */ }
+  try {
+    const tx = await app.api("/api/transactions?limit=10");
+    renderRecent(tx.transactions || []);
+  } catch (err) { /* leave empty state */ }
 
-      load(7);
-    })();
-  </script>
+  load(7);
+})();
+</script>
 </body>
-
 </html>
